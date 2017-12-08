@@ -2,25 +2,40 @@
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using IronCore.Utils;
+using IronCore.Physics;
 
 namespace IronCore
 {
     public class MainGame : Game
     {
-        public MainGame() : base("IronCore - Minalear", 1280, 720)
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                Vector2 a = Vector2.Zero;
-                Vector2 b = RNG.NextVector();
+        private ContentManager content;
+        private ShapeRenderer renderer;
 
-                Console.WriteLine("{0} => {1} = {2}", a, b, a.Distance(b));
-            }
+        private World world;
+
+        public MainGame() : base("IronCore - Minalear", 1280, 720) { }
+
+        public override void Initialize()
+        {
+            world = new World();
+        }
+        public override void LoadContent()
+        {
+            content = new ContentManager("Content/");
+            renderer = new ShapeRenderer(content, Window.Width, Window.Height);
+
+            renderer.SetCamera(Matrix4.CreateTranslation(Window.Width / 2f, 0f, 0f));
         }
 
+        public override void Update(GameTime gameTime)
+        {
+            world.Update(gameTime);
+        }
         public override void Draw(GameTime gameTime)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit);
+
+            world.Draw(renderer);
 
             Window.SwapBuffers();
         }
