@@ -20,8 +20,7 @@ namespace IronCore.Physics
         {
             for (int i = 0; i < particles.Count; i++)
             {
-                particles[i].UpdateVelocity(gameTime);
-                particles[i].UpdatePosition(gameTime);
+                particles[i].Integrate(gameTime.FrameDelta);
             }
         }
         public void Draw(ShapeRenderer renderer)
@@ -31,5 +30,7 @@ namespace IronCore.Physics
                 renderer.DrawPixel(particles[i].Position, Color4.White);
             renderer.End();
         }
+
+        public static Vector2 Gravity = new Vector2(0f, 1f) * 0.004444f;
     }
 }

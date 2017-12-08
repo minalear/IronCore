@@ -12,21 +12,22 @@ namespace IronCore.Physics
         private Vector2 velocity;
         private Vector2 acceleration;
 
-        private float inverseMass; //1 / mass
-        private float damping;
+        private float inverseMass = 1f; //1 / mass
+        private float damping = 0.9999f;
 
-        public void UpdatePosition(GameTime gameTime)
+        public void Integrate(float timestep)
         {
-            position += velocity * gameTime.FrameDelta;
-            position += acceleration * (gameTime.FrameDelta * gameTime.FrameDelta) / 2f;
-        }
-        public void UpdateVelocity(GameTime gameTime)
-        {
-            Vector2 gravity = 5f * new Vector2(0f, 1f);
-            acceleration += gravity;
+            //Return out if mass is infinite
+            if (inverseMass <= 0f) return;
 
-            velocity += acceleration * gameTime.FrameDelta;
-            velocity *= (float)Math.Pow(damping, gameTime.FrameDelta); //Damping
+            position += velocity * timestep;
+
+            //Calculate forces
+            acceleration += World.Gravity;
+            velocity += acceleration * timestep;
+
+            //Impose drag
+            velocity *= (float)Math.Pow(damping, timestep);
         }
 
         public Vector2 Position { get { return position; } }

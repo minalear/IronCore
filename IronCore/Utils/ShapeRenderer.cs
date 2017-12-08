@@ -115,7 +115,7 @@ namespace IronCore.Utils
             shader.SetColor4("drawColor", color);
 
             createShapeVertexInfo(new float[] { position.X, position.Y });
-            GL.DrawArrays(PrimitiveType.Points, 0, 2);
+            GL.DrawArrays(PrimitiveType.Points, 0, 1);
         }
         public void DrawPixels(float[] vertices, Color4 color)
         {
