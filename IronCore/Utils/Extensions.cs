@@ -62,6 +62,15 @@ namespace IronCore.Utils
             return Vector2d.Zero;
         }
 
+        public static float Distance(this Vector2 a, Vector2 b)
+        {
+            return (b - a).Length;
+        }
+        public static float DistanceSquared(this Vector2 a, Vector2 b)
+        {
+            return (b - a).LengthSquared;
+        }
+
         /*COLORS*/
         public static Vector3 RGB(this Color4 color)
         {

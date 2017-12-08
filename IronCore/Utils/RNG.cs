@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTK;
 using OpenTK.Graphics;
 
 namespace IronCore.Utils
@@ -69,6 +70,33 @@ namespace IronCore.Utils
         public static float NextFloat(float min, float max)
         {
             return NextFloat() * (max - min) + min;
+        }
+
+        /// <summary>
+        /// Returns a random vector with the length 1.
+        /// </summary>
+        public static Vector2 NextVector()
+        {
+            float angle = RNG.NextFloat(0f, MathHelper.TwoPi);
+
+            float x = (float)Math.Cos(angle);
+            float y = (float)Math.Sin(angle);
+
+            return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Returns a random vector with the lengths between min and max.
+        /// </summary>
+        public static Vector2 NextVector(float magMin, float magMax)
+        {
+            float randomLength = NextFloat(magMin, magMax);
+            float angle = RNG.NextFloat(0f, MathHelper.TwoPi);
+
+            float x = (float)Math.Cos(angle);
+            float y = (float)Math.Sin(angle);
+
+            return new Vector2(x, y) * randomLength;
         }
 
         /// <summary>
