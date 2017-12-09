@@ -20,8 +20,11 @@ namespace IronCore.Physics
         {
             for (int i = 0; i < particles.Count; i++)
             {
+                particles[i].ApplyForce(Gravity * particles[i].Mass);
                 particles[i].Integrate(gameTime.FrameDelta);
             }
+
+            
         }
         public void Draw(ShapeRenderer renderer)
         {
@@ -31,6 +34,7 @@ namespace IronCore.Physics
             renderer.End();
         }
 
-        public static Vector2 Gravity = new Vector2(0f, 1f) * 0.004444f;
+        public const float GRAVITY_CONSTANT = 8f;
+        public static Vector2 Gravity = new Vector2(0f, 1f) * GRAVITY_CONSTANT;
     }
 }
