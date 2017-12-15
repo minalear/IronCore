@@ -1,0 +1,3 @@
+[submodule "FarseerPhysicsTK"]
+	path = FarseerPhysicsTK
+	url = git@github.com:minalear/FarseerPhysicsTK.git

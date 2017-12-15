@@ -2,8 +2,14 @@
 using System.IO;
 using System.Drawing;
 using System.Collections.Generic;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using FarseerPhysics;
+using FarseerPhysics.Common;
+using FarseerPhysics.Dynamics;
+using FarseerPhysics.Factories;
+using Newtonsoft.Json;
 
 namespace IronCore.Utils
 {
@@ -132,6 +138,48 @@ namespace IronCore.Utils
 
             return new ShaderProgram(programID);
         }
+        public Vertices[] LoadMap(World world, string path)
+        {
+            path = checkValidPath(path);
+            MapFile map = JsonConvert.DeserializeObject<MapFile>(path);
+
+            List<Vertices> mapGeometry = new List<Vertices>();
+
+            int layerIndex = -1;
+            for (int i = 0; i < map.Layers.Length; i++)
+            {
+                if (map.Layers[i].Name == "Collision")
+                {
+                    layerIndex = i;
+                    break;
+                }
+            }
+
+            //Cannot find collision layer
+            if (layerIndex == -1)
+                throw new FileLoadException("Cannot find collision layer in map file.");
+
+            for (int i = 0; i < map.Layers[layerIndex].Objects.Length; i++)
+            {
+                ObjectInfo obj = map.Layers[layerIndex].Objects[i];
+                if (obj.Polygon == null) continue;
+
+                Vertices renderGeo = new Vertices(obj.Polygon.Length);
+                Vertices logicGeo = new Vertices(obj.Polygon.Length);
+                Vector2 objPos = new Vector2(obj.X, obj.Y);
+
+                for (int k = 0; k < obj.Polygon.Length; k++)
+                {
+                    logicGeo.Add(ConvertUnits.ToSimUnits(obj.Polygon[k]));
+                    renderGeo.Add(obj.Polygon[k] + objPos);
+                }
+
+                Body body = BodyFactory.CreatePolygon(world, logicGeo, 1f, ConvertUnits.ToSimUnits(objPos));
+                mapGeometry.Add(renderGeo);
+            }
+
+            return mapGeometry.ToArray();
+        }
 
         private Color4 parseHexString(string str)
         {
@@ -180,5 +228,26 @@ namespace IronCore.Utils
         }
 
         private const int SHADER_COMPILATION_ERROR_CODE = 0;
+    }
+
+    public class MapFile
+    {
+        public string BackgroundColor;
+        public int Width, Height;
+        public int NextObjectID;
+        public LayerInfo[] Layers;
+    }
+    public class LayerInfo
+    {
+        public string Name;
+        public ObjectInfo[] Objects;
+    }
+    public class ObjectInfo
+    {
+        public string Name;
+        public int ID;
+        public float X, Y;
+        public float Width, Height;
+        public Vector2[] Polygon;
     }
 }
