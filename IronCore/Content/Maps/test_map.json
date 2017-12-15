@@ -1,16 +1,6 @@
 { "backgroundcolor":"#ffffff",
  "height":100,
- "layers":[
-        {
-         "image":"..\/..\/..\/..\/..\/Desktop\/map_template.png",
-         "name":"Template",
-         "opacity":1,
-         "type":"imagelayer",
-         "visible":true,
-         "x":0,
-         "y":0
-        }, 
-        {
+ "layers":[ {
          "draworder":"topdown",
          "name":"Collision",
          "objects":[

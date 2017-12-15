@@ -138,12 +138,12 @@ namespace IronCore.Utils
 
             return new ShaderProgram(programID);
         }
-        public Vertices[] LoadMap(World world, string path)
+        public Shape[] LoadMap(World world, string path)
         {
             path = checkValidPath(path);
-            MapFile map = JsonConvert.DeserializeObject<MapFile>(path);
+            MapFile map = JsonConvert.DeserializeObject<MapFile>(readAllText(path));
 
-            List<Vertices> mapGeometry = new List<Vertices>();
+            var mapGeometry = new List<Shape>();
 
             int layerIndex = -1;
             for (int i = 0; i < map.Layers.Length; i++)
@@ -164,18 +164,19 @@ namespace IronCore.Utils
                 ObjectInfo obj = map.Layers[layerIndex].Objects[i];
                 if (obj.Polygon == null) continue;
 
-                Vertices renderGeo = new Vertices(obj.Polygon.Length);
                 Vertices logicGeo = new Vertices(obj.Polygon.Length);
-                Vector2 objPos = new Vector2(obj.X, obj.Y);
+                Shape shape = new Shape(obj.Polygon.Length * 2); 
 
                 for (int k = 0; k < obj.Polygon.Length; k++)
                 {
                     logicGeo.Add(ConvertUnits.ToSimUnits(obj.Polygon[k]));
-                    renderGeo.Add(obj.Polygon[k] + objPos);
+                    
+                    shape.VertexData[k * 2 + 0] = obj.Polygon[k].X + obj.X;
+                    shape.VertexData[k * 2 + 1] = obj.Polygon[k].Y + obj.Y;
                 }
 
-                Body body = BodyFactory.CreatePolygon(world, logicGeo, 1f, ConvertUnits.ToSimUnits(objPos));
-                mapGeometry.Add(renderGeo);
+                Body body = BodyFactory.CreatePolygon(world, logicGeo, 1f, ConvertUnits.ToSimUnits(new Vector2(obj.X, obj.Y)));
+                mapGeometry.Add(shape);
             }
 
             return mapGeometry.ToArray();
@@ -230,6 +231,15 @@ namespace IronCore.Utils
         private const int SHADER_COMPILATION_ERROR_CODE = 0;
     }
 
+    public class Shape
+    {
+        public float[] VertexData;
+
+        public Shape(int count)
+        {
+            VertexData = new float[count];
+        }
+    }
     public class MapFile
     {
         public string BackgroundColor;
