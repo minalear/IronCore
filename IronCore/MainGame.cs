@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
 using OpenTK.Graphics;
@@ -22,12 +23,15 @@ namespace IronCore
         private Shape rocketShape;
         private Shape[] levelGeometry;
 
+        private List<Bullet> bullets;
+        private float bulletCounter = 0f;
+
         public MainGame() : base("IronCore - Minalear", 800, 450) { }
 
         public override void Initialize()
         {
             world = new World(new Vector2(0f, 9.8f));
-
+            bullets = new List<Bullet>();
         }
         public override void LoadContent()
         {
@@ -43,6 +47,24 @@ namespace IronCore
         public override void Update(GameTime gameTime)
         {
             GamePadState gpadState = GamePad.GetState(0);
+
+            //Bullet delay counter
+            bulletCounter += gameTime.FrameDelta;
+            if (bulletCounter > 0.05f)
+                bulletCounter = 0f;
+
+            //Destroy older bullets
+            for (int i = 0; i < bullets.Count; i++)
+            {
+                bullets[i].Lifetime += gameTime.FrameDelta;
+                if (bullets[i].Lifetime > 5f)
+                {
+                    world.RemoveBody(bullets[i].BulletBody);
+                    bullets.RemoveAt(i--);
+                }
+            }
+
+            //Process player input
             if (gpadState.ThumbSticks.Left.LengthSquared > 0.01f)
             {
                 Vector2 leftStick = gpadState.ThumbSticks.Left;
@@ -60,6 +82,12 @@ namespace IronCore
                 rocket.ApplyForce(new Vector2(0f, y) / 5f);
             }
 
+            if (gpadState.Buttons.RightShoulder == ButtonState.Pressed && bulletCounter == 0f)
+            {
+                spawnBullet();
+            }
+
+            //Simulate world
             world.Step(0.01f);
         }
         public override void Draw(GameTime gameTime)
@@ -79,6 +107,10 @@ namespace IronCore
             renderer.SetTransform(Matrix4.Identity);
             foreach (Shape shape in levelGeometry)
                 renderer.DrawShape(shape.VertexData, Color4.LimeGreen);
+
+            //Draw bullets
+            foreach (var bullet in bullets)
+                renderer.DrawCircle(ConvertUnits.ToDisplayUnits(bullet.BulletBody.Position), 1f, 4, Color4.Orange);
 
             //Draw rocket
             renderer.SetTransform(
@@ -105,6 +137,7 @@ namespace IronCore
             rocket.Position = ConvertUnits.ToSimUnits(new Vector2(100f, 50f));
             rocket.AngularDamping = 300f;
             rocket.LinearDamping = 8f;
+            rocket.UserData = "Player";
 
             rocketShape = new Shape(6);
 
@@ -117,5 +150,46 @@ namespace IronCore
             rocketShape.VertexData[4] = width;
             rocketShape.VertexData[5] = height;
         }
+        private void spawnBullet()
+        {
+            Vector2 direction = new Vector2(
+                (float)Math.Sin(rocket.Rotation),
+                -(float)Math.Cos(rocket.Rotation));
+            Vector2 velocity = direction / 500f;
+            Vector2 position = direction * 6f + ConvertUnits.ToDisplayUnits(rocket.Position);
+
+            Body bullet = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 1f);
+            bullet.Position = ConvertUnits.ToSimUnits(position);
+            bullet.FixedRotation = true;
+            bullet.BodyType = BodyType.Dynamic;
+            bullet.IsBullet = true;
+            bullet.OnCollision += Bullet_OnCollision;
+            bullet.ApplyLinearImpulse(velocity);
+            bullet.CollidesWith = (Category.All ^ Category.Cat1);
+
+            bullet.UserData = "Player_Bullet";
+
+            bullets.Add(new Bullet() { BulletBody = bullet });
+        }
+
+        private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
+        {
+            for (int i = 0; i < bullets.Count; i++)
+            {
+                if (bullets[i].BulletBody.BodyId == fixtureA.Body.BodyId)
+                {
+                    bullets.RemoveAt(i);
+                    fixtureA.Body.Dispose();
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public class Bullet
+    {
+        public Body BulletBody;
+        public float Lifetime;
     }
 }
