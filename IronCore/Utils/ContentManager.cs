@@ -176,6 +176,8 @@ namespace IronCore.Utils
                 }
 
                 Body body = BodyFactory.CreatePolygon(world, logicGeo, 1f, ConvertUnits.ToSimUnits(new Vector2(obj.X, obj.Y)));
+                body.CollisionCategories = Category.Cat2;
+                body.UserData = "Level";
                 mapGeometry.Add(shape);
             }
 

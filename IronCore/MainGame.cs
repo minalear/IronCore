@@ -24,7 +24,9 @@ namespace IronCore
         private Shape[] levelGeometry;
 
         private List<Bullet> bullets;
+        private List<Enemy> enemies;
         private float bulletCounter = 0f;
+        private float playerHealth = 100f;
 
         public MainGame() : base("IronCore - Minalear", 800, 450) { }
 
@@ -32,6 +34,7 @@ namespace IronCore
         {
             world = new World(new Vector2(0f, 9.8f));
             bullets = new List<Bullet>();
+            enemies = new List<Enemy>();
         }
         public override void LoadContent()
         {
@@ -42,6 +45,7 @@ namespace IronCore
 
             levelGeometry = content.LoadMap(world, "Maps/test_map.json");
             initRocket();
+            initEnemies();
         }
 
         public override void Update(GameTime gameTime)
@@ -50,7 +54,7 @@ namespace IronCore
 
             //Bullet delay counter
             bulletCounter += gameTime.FrameDelta;
-            if (bulletCounter > 0.05f)
+            if (bulletCounter > 0.08f)
                 bulletCounter = 0f;
 
             //Destroy older bullets
@@ -59,10 +63,14 @@ namespace IronCore
                 bullets[i].Lifetime += gameTime.FrameDelta;
                 if (bullets[i].Lifetime > 5f)
                 {
-                    world.RemoveBody(bullets[i].BulletBody);
+                    world.RemoveBody(bullets[i].Body);
                     bullets.RemoveAt(i--);
                 }
             }
+            
+            Vector2 enemyThrust = new Vector2(0f, -9.8f);
+            foreach (var enemy in enemies)
+                enemy.Body.ApplyForce(enemyThrust);
 
             //Process player input
             if (gpadState.ThumbSticks.Left.LengthSquared > 0.01f)
@@ -71,21 +79,31 @@ namespace IronCore
                 rocket.Rotation = (float)Math.Atan2(leftStick.X, leftStick.Y);
 
                 //Only apply horizontal thrust
-                leftStick.Y = 0f;
-                rocket.ApplyForce(leftStick / 6f);
+                leftStick.Y = -leftStick.Y;
+
+                float mod = gpadState.Triggers.Right + 1f;
+                rocket.ApplyForce(leftStick * mod / 5f);
             }
-            if (gpadState.Buttons.A == ButtonState.Pressed)
+            if (gpadState.ThumbSticks.Right.LengthSquared > 0.01f)
+            {
+                Vector2 rightStick = gpadState.ThumbSticks.Right;
+                rocket.Rotation = (float)Math.Atan2(rightStick.X, rightStick.Y);
+            }
+            /*if (gpadState.Buttons.A == ButtonState.Pressed)
             {
                 float x = (float)Math.Sin(rocket.Rotation);
                 float y = -(float)Math.Cos(rocket.Rotation);
 
                 rocket.ApplyForce(new Vector2(0f, y) / 5f);
-            }
+            }*/
 
             if (gpadState.Buttons.RightShoulder == ButtonState.Pressed && bulletCounter == 0f)
             {
                 spawnBullet();
             }
+
+            //Window.Title = ConvertUnits.ToDisplayUnits(rocket.Position).ToString();
+            //Window.Title = ConvertUnits.ToDisplayUnits(rocket.LinearVelocity).ToString();
 
             //Simulate world
             world.Step(0.01f);
@@ -110,14 +128,18 @@ namespace IronCore
 
             //Draw bullets
             foreach (var bullet in bullets)
-                renderer.DrawCircle(ConvertUnits.ToDisplayUnits(bullet.BulletBody.Position), 1f, 4, Color4.Orange);
+                renderer.DrawCircle(ConvertUnits.ToDisplayUnits(bullet.Body.Position), 1f, 4, Color4.Orange);
+
+            //Draw enemies
+            foreach (var enemy in enemies)
+                renderer.DrawCircle(ConvertUnits.ToDisplayUnits(enemy.Body.Position), 6f, 24, Color4.Cyan);
 
             //Draw rocket
             renderer.SetTransform(
                 Matrix4.CreateRotationZ(rocket.Rotation) *
                 Matrix4.CreateTranslation(rocketPosition.X, rocketPosition.Y, 0f));
-            renderer.DrawShape(rocketShape.VertexData, Color4.Red);
-
+            renderer.DrawShape(rocketShape.VertexData, ColorUtils.Blend(Color4.LimeGreen, Color4.Red, playerHealth / 100f));
+            
             renderer.End();
             Window.SwapBuffers();
         }
@@ -138,6 +160,7 @@ namespace IronCore
             rocket.AngularDamping = 300f;
             rocket.LinearDamping = 8f;
             rocket.UserData = "Player";
+            rocket.OnCollision += Rocket_OnCollision;
 
             rocketShape = new Shape(6);
 
@@ -150,6 +173,27 @@ namespace IronCore
             rocketShape.VertexData[4] = width;
             rocketShape.VertexData[5] = height;
         }
+        
+        private void initEnemies()
+        {
+            var enemyPositions = new Vector2[]
+            {
+                new Vector2(35f, 50f),
+                new Vector2(128f, 430f),
+                new Vector2(180f, 560f),
+                new Vector2(900f, 260f)
+            };
+
+            foreach (var position in enemyPositions)
+            {
+                Body enemy = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(6f), 88.5f, ConvertUnits.ToSimUnits(position));
+                enemy.CollisionCategories = Category.Cat2;
+                enemy.BodyType = BodyType.Dynamic;
+                enemy.UserData = "Enemy";
+
+                enemies.Add(new Enemy() { Body = enemy, Health = 10f });
+            }
+        }
         private void spawnBullet()
         {
             Vector2 direction = new Vector2(
@@ -158,7 +202,7 @@ namespace IronCore
             Vector2 velocity = direction / 500f;
             Vector2 position = direction * 6f + ConvertUnits.ToDisplayUnits(rocket.Position);
 
-            Body bullet = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 1f);
+            Body bullet = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 0.5f);
             bullet.Position = ConvertUnits.ToSimUnits(position);
             bullet.FixedRotation = true;
             bullet.BodyType = BodyType.Dynamic;
@@ -169,17 +213,56 @@ namespace IronCore
 
             bullet.UserData = "Player_Bullet";
 
-            bullets.Add(new Bullet() { BulletBody = bullet });
+            bullets.Add(new Bullet() { Body = bullet });
+
+            //Apply inverse force to rocket
+            rocket.ApplyForce(-velocity);
         }
 
         private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
+            if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Enemy"))
+            {
+                for (int i = 0; i < enemies.Count; i++)
+                {
+                    if (enemies[i].Body.BodyId != fixtureB.Body.BodyId) continue;
+
+                    enemies[i].Health -= 1f;
+                    if (enemies[i].Health <= 0f)
+                    {
+                        enemies[i].Body.Dispose();
+                        enemies.RemoveAt(i--);
+
+                        break;
+                    }
+                }
+            }
+
             for (int i = 0; i < bullets.Count; i++)
             {
-                if (bullets[i].BulletBody.BodyId == fixtureA.Body.BodyId)
+                if (bullets[i].Body.BodyId == fixtureA.Body.BodyId)
                 {
                     bullets.RemoveAt(i);
                     fixtureA.Body.Dispose();
+                }
+            }
+
+            return true;
+        }
+        private bool Rocket_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
+        {
+            if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Level"))
+            {
+                float velLength = rocket.LinearVelocity.Length;
+                if (velLength > 1f) //Deal damage
+                {
+                    float damage = 1f * velLength;
+                    playerHealth -= damage;
+
+                    if (playerHealth <= 0f)
+                        playerHealth = 0f;
+
+                    Window.Title = playerHealth.ToString();
                 }
             }
 
@@ -189,7 +272,12 @@ namespace IronCore
 
     public class Bullet
     {
-        public Body BulletBody;
+        public Body Body;
         public float Lifetime;
+    }
+    public class Enemy
+    {
+        public Body Body;
+        public float Health;
     }
 }
