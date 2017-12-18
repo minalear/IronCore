@@ -66,11 +66,25 @@ namespace IronCore.Utils
             createCircleVertexInfo(position, radius, sides);
             GL.DrawArrays(PrimitiveType.LineLoop, 0, sides);
         }
+        public void DrawCircle(CircleF circle, int sides, Color4 color)
+        {
+            shader.SetColor4("drawColor", color);
+
+            createCircleVertexInfo(circle.Position, circle.Radius, sides);
+            GL.DrawArrays(PrimitiveType.LineLoop, 0, sides);
+        }
         public void DrawRect(Vector2 position, Vector2 size, Color4 color)
         {
             shader.SetColor4("drawColor", color);
 
             createRectVertexInfo(position, size);
+            GL.DrawArrays(PrimitiveType.LineLoop, 0, 4);
+        }
+        public void DrawRect(RectangleF rect, Color4 color)
+        {
+            shader.SetColor4("drawColor", color);
+
+            createRectVertexInfo(rect.Position, rect.Size);
             GL.DrawArrays(PrimitiveType.LineLoop, 0, 4);
         }
         public void DrawLine(Vector2 pos1, Vector2 pos2, Color4 color)
@@ -132,11 +146,25 @@ namespace IronCore.Utils
             createCircleVertexInfo(position, radius, sides);
             GL.DrawArrays(PrimitiveType.TriangleFan, 0, sides);
         }
+        public void FillCircle(CircleF circle, int sides, Color4 color)
+        {
+            shader.SetColor4("drawColor", color);
+
+            createCircleVertexInfo(circle.Position, circle.Radius, sides);
+            GL.DrawArrays(PrimitiveType.TriangleFan, 0, sides);
+        }
         public void FillRect(Vector2 position, Vector2 size, Color4 color)
         {
             shader.SetColor4("drawColor", color);
 
             createRectVertexInfo(position, size);
+            GL.DrawArrays(PrimitiveType.Quads, 0, 4);
+        }
+        public void FillRect(RectangleF rect, Color4 color)
+        {
+            shader.SetColor4("drawColor", color);
+
+            createRectVertexInfo(rect.Position, rect.Size);
             GL.DrawArrays(PrimitiveType.Quads, 0, 4);
         }
         public void FillShape(float[] vertices, Color4 color)

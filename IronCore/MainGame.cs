@@ -28,6 +28,10 @@ namespace IronCore
         private float bulletCounter = 0f;
         private float playerHealth = 100f;
 
+        private Gate gate;
+        private CircleF sensor;
+        private Body sensorBody;
+
         public MainGame() : base("IronCore - Minalear", 800, 450) { }
 
         public override void Initialize()
@@ -46,6 +50,7 @@ namespace IronCore
             levelGeometry = content.LoadMap(world, "Maps/test_map.json");
             initRocket();
             initEnemies();
+            initGates();
         }
 
         public override void Update(GameTime gameTime)
@@ -102,8 +107,21 @@ namespace IronCore
                 spawnBullet();
             }
 
-            //Window.Title = ConvertUnits.ToDisplayUnits(rocket.Position).ToString();
+            Window.Title = ConvertUnits.ToDisplayUnits(rocket.Position).ToString();
             //Window.Title = ConvertUnits.ToDisplayUnits(rocket.LinearVelocity).ToString();
+
+            if (gate.OpenGate)
+            {
+                gate.GateTimer += gameTime.FrameDelta;
+                if (gate.GateTimer >= 5f)
+                {
+                    gate.GateTimer = 5f;
+                    gate.OpenGate = false;
+                }
+
+                gate.Body.Position = Vector2.Lerp(gate.ClosedPosition, gate.OpenPosition, gate.GateTimer / 5f);
+                gate.Shape.Position = ConvertUnits.ToDisplayUnits(gate.Body.Position) - gate.Shape.Size / 2f;
+            }
 
             //Simulate world
             world.Step(0.01f);
@@ -123,8 +141,13 @@ namespace IronCore
 
             //Draw world geometry
             renderer.SetTransform(Matrix4.Identity);
+            renderer.DrawRect(gate.Shape, Color4.White);
+            renderer.DrawCircle(sensor, 32, gate.SensorColor);
             foreach (Shape shape in levelGeometry)
+            {
+                renderer.FillShape(shape.VertexData, Color4.Black);
                 renderer.DrawShape(shape.VertexData, Color4.LimeGreen);
+            }
 
             //Draw bullets
             foreach (var bullet in bullets)
@@ -173,7 +196,6 @@ namespace IronCore
             rocketShape.VertexData[4] = width;
             rocketShape.VertexData[5] = height;
         }
-        
         private void initEnemies()
         {
             var enemyPositions = new Vector2[]
@@ -194,6 +216,29 @@ namespace IronCore
                 enemies.Add(new Enemy() { Body = enemy, Health = 10f });
             }
         }
+        private void initGates()
+        {
+            var shape = new RectangleF(60f, 125f, 100f, 10f);
+            Vector2 size = ConvertUnits.ToSimUnits(shape.Size);
+            Vector2 pos = ConvertUnits.ToSimUnits(shape.Position) + size / 2;
+
+            gate = new Gate()
+            {
+                Body = BodyFactory.CreateRectangle(world, size.X, size.Y, 1f, pos, 0f, BodyType.Static, "Gate"),
+                Shape = shape,
+                OpenPosition = ConvertUnits.ToSimUnits(new Vector2(250f, 125f))
+            };
+            gate.Body.CollisionCategories = Category.Cat2;
+            gate.ClosedPosition = gate.Body.Position;
+
+            sensor = new CircleF(200f, 100f, 12f);
+            sensorBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(sensor.Radius), 1f, ConvertUnits.ToSimUnits(sensor.Position), BodyType.Static, "Sensor");
+            sensorBody.IsSensor = true;
+
+            sensorBody.OnCollision += SensorBody_OnCollision;
+            sensorBody.OnSeparation += SensorBody_OnSeparation;
+        }
+        
         private void spawnBullet()
         {
             Vector2 direction = new Vector2(
@@ -268,6 +313,22 @@ namespace IronCore
 
             return true;
         }
+        private bool SensorBody_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
+        {
+            if (fixtureB.Body.UserData.Equals("Player"))
+            {
+                gate.SensorColor = Color4.MediumPurple;
+                gate.OpenGate = true;
+
+                return true;
+            }
+            
+            return false;
+        }
+        private void SensorBody_OnSeparation(Fixture fixtureA, Fixture fixtureB)
+        {
+            gate.SensorColor = Color4.Orange;
+        }
     }
 
     public class Bullet
@@ -279,5 +340,15 @@ namespace IronCore
     {
         public Body Body;
         public float Health;
+    }
+    public class Gate
+    {
+        public Body Body;
+        public RectangleF Shape;
+        public bool OpenGate = false;
+        public Vector2 OpenPosition, ClosedPosition;
+        public float GateTimer = 0f;
+
+        public Color4 SensorColor = Color4.Orange;
     }
 }
