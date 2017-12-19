@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using IronCore.Utils;
@@ -8,11 +9,20 @@ using FarseerPhysics.Dynamics;
 namespace IronCore
 {
     public class Map
-    { 
+    {
+        public World World;
+        public Body PlayerBody;
+
         public List<StaticGeometry> StaticGeometry;
         public List<Gate> Gates;
         public List<Sensor> Sensors;
         public List<Enemy> Enemies;
+        public List<Scientist> Scientists;
+
+        public Map(World world)
+        {
+            World = world;
+        }
 
         public void Update(GameTime gameTime)
         {
@@ -36,6 +46,23 @@ namespace IronCore
                 Gates[i].DisplayArea.Position = ConvertUnits.ToDisplayUnits(Gates[i].PhysicsBody.Position);
                 Gates[i].DisplayArea.Position -= Gates[i].DisplayArea.Size / 2f;
             }
+
+            //Update enemy logic
+            for (int i = 0; i < Enemies.Count; i++)
+            {
+                Enemies[i].Update(gameTime, this);
+            }
+
+            //Update scientists logic
+            for (int i = 0; i < Scientists.Count; i++)
+            {
+                Scientists[i].Update(gameTime, this);
+                if (Scientists[i].DoRemove)
+                {
+                    Scientists[i].PhysicsBody.Dispose();
+                    Scientists.RemoveAt(i--);
+                }
+            }
         }
         public void Draw(ShapeRenderer renderer)
         {
@@ -57,7 +84,11 @@ namespace IronCore
             }
             for (int i = 0; i < Enemies.Count; i++)
             {
-                renderer.DrawCircle(Enemies[i].Area, 24, Color4.Cyan);
+                renderer.DrawCircle(Enemies[i].Area, 24, Enemies[i].Color);
+            }
+            for (int i = 0; i < Scientists.Count; i++)
+            {
+                renderer.DrawCircle(Scientists[i].DisplayPosition, 1f, 6, Scientists[i].Color);
             }
         }
     }
@@ -101,5 +132,81 @@ namespace IronCore
         public CircleF Area;
         public Body PhysicsBody;
         public float CurrentHealth;
+
+        public Color4 Color = Color4.Cyan;
+
+        public void Update(GameTime gameTime, Map map)
+        {
+            Color = Color4.Cyan;
+            float distToPlayer = map.PlayerBody.Position.DistanceSquared(PhysicsBody.Position);
+            if (distToPlayer > 50f) return;
+
+            var fixtureList =
+                (from fixture in map.World.RayCast(PhysicsBody.Position, map.PlayerBody.Position)
+                where fixture.CollisionCategories == Category.Cat2
+                select fixture).ToList();
+            if (fixtureList.Count <= 1)
+                Color = Color4.Red;
+        }
+    }
+    public class Scientist
+    {
+        public Vector2 DisplayPosition;
+        public RectangleF SpawnArea;
+        public Body PhysicsBody;
+        public Color4 Color = Color4.Aquamarine;
+
+        public bool DoRemove = false;
+
+        private float positionTracker;
+        private float positionMod = 1f;
+
+        public Scientist(Vector2 displayPosition, RectangleF spawnArea)
+        {
+            DisplayPosition = displayPosition;
+            SpawnArea = spawnArea;
+
+            //Position between the left and right boundary of the spawn area
+            positionTracker = (displayPosition.X - spawnArea.X) / spawnArea.Width;
+        }
+
+        public void Update(GameTime gameTime, Map map)
+        {
+            float distToPlayer = map.PlayerBody.Position.DistanceSquared(PhysicsBody.Position);
+            float playerVel = map.PlayerBody.LinearVelocity.LengthSquared;
+
+            if (distToPlayer > 0.1f || playerVel != 0f) //Patrol
+            {
+                Color = Color4.Aquamarine;
+
+                positionTracker += 0.003f * positionMod;
+                if (positionTracker >= 1f)
+                {
+                    positionTracker = 1f;
+                    positionMod = -1f;
+                }
+                else if (positionTracker <= 0f)
+                {
+                    positionMod = 0f;
+                    positionMod = 1f;
+                }
+            }
+            else if (playerVel == 0f)
+            {
+                Color = Color4.DarkGoldenrod;
+
+                positionMod = (map.PlayerBody.Position.X < PhysicsBody.Position.X) ? -1f : 1f;
+                positionTracker += 0.003f * positionMod;
+
+                if (distToPlayer <= 0.002f)
+                {
+                    DoRemove = true;
+                }
+            }
+
+            float y = DisplayPosition.Y;
+            DisplayPosition = Vector2.Lerp(new Vector2(SpawnArea.Left, y), new Vector2(SpawnArea.Right, y), positionTracker);
+            PhysicsBody.Position = ConvertUnits.ToSimUnits(DisplayPosition);
+        }
     }
 }

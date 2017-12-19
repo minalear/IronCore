@@ -147,6 +147,7 @@ namespace IronCore.Utils
             int collisionIndex = -1;
             int gateIndex = -1;
             int enemyIndex = -1;
+            int objectiveIndex = -1;
             for (int i = 0; i < mapData.Layers.Length; i++)
             {
                 if (mapData.Layers[i].Name.Equals("Collision", StringComparison.OrdinalIgnoreCase) &&
@@ -164,6 +165,11 @@ namespace IronCore.Utils
                 {
                     enemyIndex = i;
                 }
+                if (mapData.Layers[i].Name.Equals("Objectives", StringComparison.OrdinalIgnoreCase) &&
+                    mapData.Layers[i].Type.Equals("objectgroup", StringComparison.OrdinalIgnoreCase))
+                {
+                    objectiveIndex = i;
+                }
             }
 
             //Check for valid layers
@@ -173,6 +179,8 @@ namespace IronCore.Utils
                 throw new FileLoadException("Could not find gate layer in map file.");
             if (enemyIndex == -1)
                 throw new FileLoadException("Could not find enemies layer in map file.");
+            if (objectiveIndex == -1)
+                throw new FileLoadException("Could not find objective layer in map file.");
 
             var staticLevelGeometry = new List<StaticGeometry>();
 
@@ -217,11 +225,11 @@ namespace IronCore.Utils
 
                 Body physicsBody = BodyFactory.CreateRectangle(world, simSize.X, simSize.Y, 1f, simPosition);
                 physicsBody.BodyType = BodyType.Static;
-                physicsBody.CollisionCategories = Category.Cat1;
 
                 if (mapObject.Type.Equals("Gate"))
                 {
                     physicsBody.UserData = "Gate";
+                    physicsBody.CollisionCategories = Category.Cat2;
 
                     Gate gate = new Gate();
                     gate.Name = mapObject.Name;
@@ -248,6 +256,7 @@ namespace IronCore.Utils
                 {
                     physicsBody.UserData = "Sensor";
                     physicsBody.IsSensor = true;
+                    physicsBody.CollisionCategories = Category.Cat1;
 
                     Sensor sensor = new Sensor();
                     sensor.PhysicsBody = physicsBody;
@@ -272,7 +281,7 @@ namespace IronCore.Utils
                         sensor.TargetGate = gates[k];
                         sensor.PhysicsBody.OnCollision += (self, other, contact) =>
                         {
-                            if (other.Body.UserData.Equals("Player"))
+                            if (other.Body.UserData != null && other.Body.UserData.Equals("Player"))
                             {
                                 sensor.OpenGate();
                                 return true;
@@ -305,11 +314,35 @@ namespace IronCore.Utils
                 enemies.Add(enemy);
             }
 
-            Map map = new Map();
+            var scientists = new List<Scientist>();
+
+            //Load objectives
+            for (int i = 0; i < mapData.Layers[objectiveIndex].Objects.Length; i++)
+            {
+                ObjectInfo areaInfo = mapData.Layers[objectiveIndex].Objects[i];
+                RectangleF area = new RectangleF(areaInfo.X, areaInfo.Y, areaInfo.Width, areaInfo.Height);
+
+                const int scientistCount = 5;
+                for (int k = 0; k < scientistCount; k++)
+                {
+                    Vector2 position = new Vector2(RNG.NextFloat(area.Left, area.Right), area.Bottom - 2f);
+                    Scientist scientist = new Scientist(position, area);
+
+                    scientist.PhysicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 5f);
+                    scientist.PhysicsBody.Position = ConvertUnits.ToSimUnits(position);
+                    //scientist.PhysicsBody.BodyType = BodyType.Dynamic;
+                    scientist.PhysicsBody.IsSensor = true;
+
+                    scientists.Add(scientist);
+                }
+            }
+
+            Map map = new Map(world);
             map.StaticGeometry = staticLevelGeometry;
             map.Gates = gates;
             map.Sensors = sensors;
             map.Enemies = enemies;
+            map.Scientists = scientists;
 
             return map;
         }

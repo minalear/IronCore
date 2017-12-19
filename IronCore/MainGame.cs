@@ -49,6 +49,7 @@ namespace IronCore
             map = content.LoadMap(world, "Maps/physics_map.json");
 
             initRocket();
+            map.PlayerBody = rocket;
         }
 
         public override void Update(GameTime gameTime)
@@ -98,10 +99,16 @@ namespace IronCore
 
             if (gpadState.Buttons.RightShoulder == ButtonState.Pressed && bulletCounter == 0f)
             {
-                spawnBullet();
+                firePrimary();
+            }
+            else if (gpadState.Buttons.LeftShoulder == ButtonState.Pressed && bulletCounter == 0f)
+            {
+                fireSecondary();
             }
 
-            Window.Title = ConvertUnits.ToDisplayUnits(rocket.Position).ToString();
+            Window.Title = string.Format("{0} - +{1}",
+                ConvertUnits.ToDisplayUnits(rocket.Position),
+                ConvertUnits.ToDisplayUnits(rocket.LinearVelocity));
             map.Update(gameTime);
 
             //Simulate world
@@ -169,7 +176,7 @@ namespace IronCore
             rocketShape.VertexData[5] = height;
         }
 
-        private void spawnBullet()
+        private void firePrimary()
         {
             Vector2 direction = new Vector2(
                 (float)Math.Sin(rocket.Rotation),
@@ -177,32 +184,61 @@ namespace IronCore
             Vector2 velocity = direction / 500f;
             Vector2 position = direction * 6f + ConvertUnits.ToDisplayUnits(rocket.Position);
 
-            Body bullet = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 0.5f);
-            bullet.Position = ConvertUnits.ToSimUnits(position);
-            bullet.FixedRotation = true;
-            bullet.BodyType = BodyType.Dynamic;
-            bullet.IsBullet = true;
-            bullet.OnCollision += Bullet_OnCollision;
-            bullet.ApplyLinearImpulse(velocity);
-            bullet.CollidesWith = (Category.All ^ Category.Cat1);
-
-            bullet.UserData = "Player_Bullet";
-
-            bullets.Add(new Bullet() { Body = bullet });
+            spawnBullet(position, velocity, 1f, 1f);
 
             //Apply inverse force to rocket
             rocket.ApplyForce(-velocity);
+        }
+        private void fireSecondary()
+        {
+            Vector2 direction = new Vector2(
+                (float)Math.Sin(rocket.Rotation),
+                -(float)Math.Cos(rocket.Rotation));
+
+            Vector2 left = new Vector2(
+                 (float)Math.Sin(rocket.Rotation - MathHelper.PiOver6),
+                -(float)Math.Cos(rocket.Rotation - MathHelper.PiOver6));
+            Vector2 right = new Vector2(
+                 (float)Math.Sin(rocket.Rotation + MathHelper.PiOver6),
+                -(float)Math.Cos(rocket.Rotation + MathHelper.PiOver6));
+            
+            Vector2 position = direction * 6f + ConvertUnits.ToDisplayUnits(rocket.Position);
+
+            spawnBullet(position, left / 250f, 2f, 2f);
+            spawnBullet(position, right / 250f, 2f, 2f);
+
+            //Apply inverse force to rocket
+            rocket.ApplyForce(-left / 500f);
+            rocket.ApplyForce(-right / 500f);
+        }
+
+        private void spawnBullet(Vector2 position, Vector2 velocity, float size, float damage)
+        {
+            Body physicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(size), 0.5f);
+            physicsBody.Position = ConvertUnits.ToSimUnits(position);
+            physicsBody.FixedRotation = true;
+            physicsBody.BodyType = BodyType.Dynamic;
+            physicsBody.IsBullet = true;
+            physicsBody.OnCollision += Bullet_OnCollision;
+            physicsBody.ApplyLinearImpulse(velocity);
+            physicsBody.CollidesWith = (Category.All ^ Category.Cat1);
+
+            Bullet bullet = new Bullet() { Body = physicsBody, Damage = damage };
+            physicsBody.UserData = new object[] { "Player_Bullet", bullet };
+
+            bullets.Add(bullet);
         }
 
         private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
             if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Enemy"))
             {
+                Bullet bullet = (Bullet)((object[])fixtureA.Body.UserData)[1]; //Gross
                 for (int i = 0; i < map.Enemies.Count; i++)
                 {
                     if (map.Enemies[i].PhysicsBody.BodyId != fixtureB.Body.BodyId) continue;
 
-                    map.Enemies[i].CurrentHealth -= 1f;
+                    map.Enemies[i].CurrentHealth -= bullet.Damage;
                     if (map.Enemies[i].CurrentHealth <= 0f)
                     {
                         map.Enemies[i].PhysicsBody.Dispose();
@@ -249,5 +285,6 @@ namespace IronCore
     {
         public Body Body;
         public float Lifetime;
+        public float Damage;
     }
 }
