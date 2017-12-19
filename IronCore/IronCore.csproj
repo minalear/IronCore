@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MainGame.cs" />
+    <Compile Include="Map.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\CircleF.cs" />
@@ -64,6 +65,9 @@
     <Compile Include="Utils\ShaderProgram.cs" />
     <Compile Include="Utils\ShapeRenderer.cs" />
     <Content Include="Content\Maps\test_map.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Maps\physics_map.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Content\Shaders\basic.vs">

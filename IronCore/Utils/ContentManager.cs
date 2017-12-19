@@ -138,50 +138,150 @@ namespace IronCore.Utils
 
             return new ShaderProgram(programID);
         }
-        public Shape[] LoadMap(World world, string path)
+        public Map LoadMap(World world, string path)
         {
             path = checkValidPath(path);
-            MapFile map = JsonConvert.DeserializeObject<MapFile>(readAllText(path));
+            MapFile mapData = JsonConvert.DeserializeObject<MapFile>(readAllText(path));
 
-            var mapGeometry = new List<Shape>();
-
-            int layerIndex = -1;
-            for (int i = 0; i < map.Layers.Length; i++)
+            //Find the collision and gate map layers
+            int collisionIndex = -1;
+            int gateIndex = -1;
+            for (int i = 0; i < mapData.Layers.Length; i++)
             {
-                if (map.Layers[i].Name == "Collision")
+                if (mapData.Layers[i].Name.Equals("Collision", StringComparison.OrdinalIgnoreCase) &&
+                    mapData.Layers[i].Type.Equals("objectgroup", StringComparison.OrdinalIgnoreCase))
                 {
-                    layerIndex = i;
-                    break;
+                    collisionIndex = i;
+                }
+                if (mapData.Layers[i].Name.Equals("Gates", StringComparison.OrdinalIgnoreCase) &&
+                    mapData.Layers[i].Type.Equals("objectgroup", StringComparison.OrdinalIgnoreCase))
+                {
+                    gateIndex = i;
                 }
             }
 
-            //Cannot find collision layer
-            if (layerIndex == -1)
-                throw new FileLoadException("Cannot find collision layer in map file.");
+            //Check for valid layers
+            if (collisionIndex == -1)
+                throw new FileLoadException("Could not find collision layer in map file.");
+            if (gateIndex == -1)
+                throw new FileLoadException("Could not find gate layer in map file.");
 
-            for (int i = 0; i < map.Layers[layerIndex].Objects.Length; i++)
+            var staticLevelGeometry = new List<StaticGeometry>();
+
+            //Load static geometry
+            for (int i = 0; i < mapData.Layers[collisionIndex].Objects.Length; i++)
             {
-                ObjectInfo obj = map.Layers[layerIndex].Objects[i];
-                if (obj.Polygon == null) continue;
+                ObjectInfo collisionObject = mapData.Layers[collisionIndex].Objects[i];
+                if (collisionObject.Polygon == null) continue;
 
-                Vertices logicGeo = new Vertices(obj.Polygon.Length);
-                Shape shape = new Shape(obj.Polygon.Length * 2); 
+                Vertices simGeo = new Vertices(collisionObject.Polygon.Length);
+                StaticGeometry disGeo = new StaticGeometry(collisionObject.Polygon.Length * 2);
 
-                for (int k = 0; k < obj.Polygon.Length; k++)
+                //Loop through the object's vertices (Vector2)
+                for (int k = 0; k < collisionObject.Polygon.Length; k++)
                 {
-                    logicGeo.Add(ConvertUnits.ToSimUnits(obj.Polygon[k]));
-                    
-                    shape.VertexData[k * 2 + 0] = obj.Polygon[k].X + obj.X;
-                    shape.VertexData[k * 2 + 1] = obj.Polygon[k].Y + obj.Y;
+                    simGeo.Add(ConvertUnits.ToSimUnits(collisionObject.Polygon[k]));
+
+                    disGeo.VertexData[k * 2 + 0] = collisionObject.Polygon[k].X + collisionObject.X;
+                    disGeo.VertexData[k * 2 + 1] = collisionObject.Polygon[k].Y + collisionObject.Y;
                 }
 
-                Body body = BodyFactory.CreatePolygon(world, logicGeo, 1f, ConvertUnits.ToSimUnits(new Vector2(obj.X, obj.Y)));
-                body.CollisionCategories = Category.Cat2;
-                body.UserData = "Level";
-                mapGeometry.Add(shape);
+                Body geoBody = BodyFactory.CreatePolygon(world, simGeo, 1f);
+                geoBody.Position = ConvertUnits.ToSimUnits(new Vector2(collisionObject.X, collisionObject.Y));
+                geoBody.UserData = "Static Geometry";
+
+                disGeo.PhysicsBody = geoBody;
+                staticLevelGeometry.Add(disGeo);
             }
 
-            return mapGeometry.ToArray();
+            //Load Gates and Sensors
+            var gates = new List<Gate>();
+            var sensors = new List<Sensor>();
+
+            for (int i = 0; i < mapData.Layers[gateIndex].Objects.Length; i++)
+            {
+                ObjectInfo mapObject = mapData.Layers[gateIndex].Objects[i];
+
+                RectangleF area = new RectangleF(mapObject.X, mapObject.Y, mapObject.Width, mapObject.Height);
+                Vector2 simPosition = ConvertUnits.ToSimUnits(area.Position + new Vector2(area.Width, area.Height) / 2f);
+                Vector2 simSize = ConvertUnits.ToSimUnits(area.Size);
+
+                Body physicsBody = BodyFactory.CreateRectangle(world, simSize.X, simSize.Y, 1f, simPosition);
+                physicsBody.BodyType = BodyType.Static;
+                physicsBody.CollisionCategories = Category.Cat1;
+
+                if (mapObject.Type.Equals("Gate"))
+                {
+                    physicsBody.UserData = "Gate";
+
+                    Gate gate = new Gate();
+                    gate.Name = mapObject.Name;
+                    gate.DisplayArea = area;
+                    gate.PhysicsBody = physicsBody;
+                    gate.StartPosition = simPosition;
+
+                    //Gate end positions based on how it slides
+                    if (mapObject.Properties["Slide"].Equals("Left"))
+                        gate.EndPosition = simPosition - new Vector2(simSize.X, 0f);
+                    else if (mapObject.Properties["Slide"].Equals("Right"))
+                        gate.EndPosition = simPosition + new Vector2(simSize.X, 0f);
+                    else if (mapObject.Properties["Slide"].Equals("Up"))
+                        gate.EndPosition = simPosition - new Vector2(0f, simSize.Y);
+                    else if (mapObject.Properties["Slide"].Equals("Down"))
+                        gate.EndPosition = simPosition + new Vector2(0f, simSize.Y);
+
+                    gate.Timer = 0f;
+                    gate.OpenTime = mapObject.Properties.ContainsKey("OpenTime") ? Convert.ToSingle(mapObject.Properties["OpenTime"]) : 5f;
+
+                    gates.Add(gate);
+                }
+                else if (mapObject.Type.Equals("Sensor"))
+                {
+                    physicsBody.UserData = "Sensor";
+                    physicsBody.IsSensor = true;
+
+                    Sensor sensor = new Sensor();
+                    sensor.PhysicsBody = physicsBody;
+                    sensor.TargetGateName = mapObject.Properties.ContainsKey("Gate") ? (string)mapObject.Properties["Gate"] : "None";
+                    sensor.DisplayArea = area;
+
+                    sensors.Add(sensor);
+                }
+            }
+
+            //Pair sensors with gates
+            for (int i = 0; i < sensors.Count; i++)
+            {
+                if (sensors[i].TargetGateName.Equals("None")) continue;
+
+                for (int k = 0; k < gates.Count; k++)
+                {
+                    if (gates[k].Name == sensors[i].TargetGateName)
+                    {
+                        //Set target gate and setup event trigger
+                        Sensor sensor = sensors[i];
+                        sensor.TargetGate = gates[k];
+                        sensor.PhysicsBody.OnCollision += (self, other, contact) =>
+                        {
+                            if (other.Body.UserData.Equals("Player"))
+                            {
+                                sensor.OpenGate();
+                                return true;
+                            }
+                            return false;
+                        };
+
+                        break;
+                    }
+                }
+            }
+
+            Map map = new Map();
+            map.StaticGeometry = staticLevelGeometry.ToArray();
+            map.Gates = gates.ToArray();
+            map.Sensors = sensors.ToArray();
+
+            return map;
         }
 
         private Color4 parseHexString(string str)
@@ -197,7 +297,6 @@ namespace IronCore.Utils
 
             return new Color4(r, g, b, 255);
         }
-
         private string readAllText(string path)
         {
             string fileText = string.Empty;
@@ -233,15 +332,6 @@ namespace IronCore.Utils
         private const int SHADER_COMPILATION_ERROR_CODE = 0;
     }
 
-    public class Shape
-    {
-        public float[] VertexData;
-
-        public Shape(int count)
-        {
-            VertexData = new float[count];
-        }
-    }
     public class MapFile
     {
         public string BackgroundColor;
@@ -252,14 +342,24 @@ namespace IronCore.Utils
     public class LayerInfo
     {
         public string Name;
+        public string Type;
+
         public ObjectInfo[] Objects;
+
+        public override string ToString()
+        {
+            return string.Format("'{0}' - {1}", Name, Type);
+        }
     }
     public class ObjectInfo
     {
         public string Name;
+        public string Type;
         public int ID;
         public float X, Y;
         public float Width, Height;
         public Vector2[] Polygon;
+
+        public Dictionary<string, object> Properties;
     }
 }
