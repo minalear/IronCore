@@ -1,6 +1,6 @@
 { "backgroundcolor":"#ffffff",
  "height":135,
- "layers":[ 
+ "layers":[
         {
          "draworder":"topdown",
          "name":"Collision",
@@ -1434,7 +1434,7 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":853.1875,
+                 "x":853.188,
                  "y":399.75
                 }, 
                 {
@@ -3159,8 +3159,8 @@
                          "y":0
                         }, 
                         {
-                         "x":-35.2727272727273,
-                         "y":-23.4545454545454
+                         "x":-35.2727,
+                         "y":-23.4545
                         }, 
                         {
                          "x":8,
@@ -5847,19 +5847,19 @@
                          "y":0
                         }, 
                         {
-                         "x":13.8181818181818,
-                         "y":-0.727272727272748
+                         "x":13.8182,
+                         "y":-0.727273
                         }, 
                         {
-                         "x":6.5454545454545,
-                         "y":7.09090909090901
+                         "x":6.54545,
+                         "y":7.09091
                         }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":1209.63636363636,
-                 "y":1057.45454545455
+                 "x":1209.64,
+                 "y":1057.45
                 }, 
                 {
                  "height":0,
@@ -5886,7 +5886,7 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":1219.8125,
+                 "x":1219.81,
                  "y":1056.75
                 }, 
                 {
@@ -11889,7 +11889,7 @@
                  "x":952,
                  "y":584
                 }],
-         "opacity":1,
+         "opacity":0.0799999982118607,
          "type":"objectgroup",
          "visible":true,
          "x":0,
@@ -11984,8 +11984,114 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "name":"Enemies",
+         "objects":[
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":493,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":832,
+                 "y":896
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":494,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1144,
+                 "y":768
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":495,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1272,
+                 "y":824
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":496,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1152,
+                 "y":1016
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":497,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1384,
+                 "y":672
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":498,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":200,
+                 "y":456
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":499,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":400,
+                 "y":392
+                }, 
+                {
+                 "ellipse":true,
+                 "height":0,
+                 "id":500,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":456,
+                 "y":528
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextobjectid":493,
+ "nextobjectid":501,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.0.3",

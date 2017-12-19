@@ -24,7 +24,6 @@ namespace IronCore
         private Map map;
 
         private List<Bullet> bullets;
-        private List<Enemy> enemies;
         private float bulletCounter = 0f;
         private float playerHealth = 100f;
 
@@ -38,7 +37,6 @@ namespace IronCore
         {
             world = new World(new Vector2(0f, 9.8f));
             bullets = new List<Bullet>();
-            enemies = new List<Enemy>();
         }
         public override void LoadContent()
         {
@@ -51,7 +49,6 @@ namespace IronCore
             map = content.LoadMap(world, "Maps/physics_map.json");
 
             initRocket();
-            initEnemies();
         }
 
         public override void Update(GameTime gameTime)
@@ -73,10 +70,6 @@ namespace IronCore
                     bullets.RemoveAt(i--);
                 }
             }
-            
-            Vector2 enemyThrust = new Vector2(0f, -9.8f);
-            foreach (var enemy in enemies)
-                enemy.Body.ApplyForce(enemyThrust);
 
             //Process player input
             if (gpadState.ThumbSticks.Left.LengthSquared > 0.01f)
@@ -135,10 +128,6 @@ namespace IronCore
             foreach (var bullet in bullets)
                 renderer.DrawCircle(ConvertUnits.ToDisplayUnits(bullet.Body.Position), 1f, 4, Color4.Orange);
 
-            //Draw enemies
-            foreach (var enemy in enemies)
-                renderer.DrawCircle(ConvertUnits.ToDisplayUnits(enemy.Body.Position), 6f, 24, Color4.Cyan);
-
             //Draw rocket
             renderer.SetTransform(
                 Matrix4.CreateRotationZ(rocket.Rotation) *
@@ -179,26 +168,6 @@ namespace IronCore
             rocketShape.VertexData[4] = width;
             rocketShape.VertexData[5] = height;
         }
-        private void initEnemies()
-        {
-            var enemyPositions = new Vector2[]
-            {
-                new Vector2(35f, 50f),
-                new Vector2(128f, 430f),
-                new Vector2(180f, 560f),
-                new Vector2(900f, 260f)
-            };
-
-            foreach (var position in enemyPositions)
-            {
-                Body enemy = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(6f), 88.5f, ConvertUnits.ToSimUnits(position));
-                enemy.CollisionCategories = Category.Cat2;
-                enemy.BodyType = BodyType.Dynamic;
-                enemy.UserData = "Enemy";
-
-                enemies.Add(new Enemy() { Body = enemy, Health = 10f });
-            }
-        }
 
         private void spawnBullet()
         {
@@ -229,15 +198,15 @@ namespace IronCore
         {
             if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Enemy"))
             {
-                for (int i = 0; i < enemies.Count; i++)
+                for (int i = 0; i < map.Enemies.Count; i++)
                 {
-                    if (enemies[i].Body.BodyId != fixtureB.Body.BodyId) continue;
+                    if (map.Enemies[i].PhysicsBody.BodyId != fixtureB.Body.BodyId) continue;
 
-                    enemies[i].Health -= 1f;
-                    if (enemies[i].Health <= 0f)
+                    map.Enemies[i].CurrentHealth -= 1f;
+                    if (map.Enemies[i].CurrentHealth <= 0f)
                     {
-                        enemies[i].Body.Dispose();
-                        enemies.RemoveAt(i--);
+                        map.Enemies[i].PhysicsBody.Dispose();
+                        map.Enemies.RemoveAt(i--);
 
                         break;
                     }
@@ -280,10 +249,5 @@ namespace IronCore
     {
         public Body Body;
         public float Lifetime;
-    }
-    public class Enemy
-    {
-        public Body Body;
-        public float Health;
     }
 }

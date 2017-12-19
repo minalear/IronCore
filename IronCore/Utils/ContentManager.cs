@@ -146,6 +146,7 @@ namespace IronCore.Utils
             //Find the collision and gate map layers
             int collisionIndex = -1;
             int gateIndex = -1;
+            int enemyIndex = -1;
             for (int i = 0; i < mapData.Layers.Length; i++)
             {
                 if (mapData.Layers[i].Name.Equals("Collision", StringComparison.OrdinalIgnoreCase) &&
@@ -158,6 +159,11 @@ namespace IronCore.Utils
                 {
                     gateIndex = i;
                 }
+                if (mapData.Layers[i].Name.Equals("Enemies", StringComparison.OrdinalIgnoreCase) &&
+                    mapData.Layers[i].Type.Equals("objectgroup", StringComparison.OrdinalIgnoreCase))
+                {
+                    enemyIndex = i;
+                }
             }
 
             //Check for valid layers
@@ -165,6 +171,8 @@ namespace IronCore.Utils
                 throw new FileLoadException("Could not find collision layer in map file.");
             if (gateIndex == -1)
                 throw new FileLoadException("Could not find gate layer in map file.");
+            if (enemyIndex == -1)
+                throw new FileLoadException("Could not find enemies layer in map file.");
 
             var staticLevelGeometry = new List<StaticGeometry>();
 
@@ -189,6 +197,7 @@ namespace IronCore.Utils
                 Body geoBody = BodyFactory.CreatePolygon(world, simGeo, 1f);
                 geoBody.Position = ConvertUnits.ToSimUnits(new Vector2(collisionObject.X, collisionObject.Y));
                 geoBody.UserData = "Static Geometry";
+                geoBody.CollisionCategories = Category.Cat2;
 
                 disGeo.PhysicsBody = geoBody;
                 staticLevelGeometry.Add(disGeo);
@@ -276,10 +285,31 @@ namespace IronCore.Utils
                 }
             }
 
+            var enemies = new List<Enemy>();
+
+            //Load enemies
+            for (int i = 0; i < mapData.Layers[enemyIndex].Objects.Length; i++)
+            {
+                ObjectInfo enemyObject = mapData.Layers[enemyIndex].Objects[i];
+
+                CircleF area = new CircleF(enemyObject.X, enemyObject.Y, 6f);
+
+                Enemy enemy = new Enemy();
+                enemy.PhysicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(area.Radius), 88.5f);
+                enemy.PhysicsBody.Position = ConvertUnits.ToSimUnits(area.Position);
+                enemy.PhysicsBody.UserData = "Enemy";
+                enemy.PhysicsBody.CollisionCategories = Category.Cat2;
+                enemy.Area = area;
+                enemy.CurrentHealth = 10f;
+
+                enemies.Add(enemy);
+            }
+
             Map map = new Map();
-            map.StaticGeometry = staticLevelGeometry.ToArray();
-            map.Gates = gates.ToArray();
-            map.Sensors = sensors.ToArray();
+            map.StaticGeometry = staticLevelGeometry;
+            map.Gates = gates;
+            map.Sensors = sensors;
+            map.Enemies = enemies;
 
             return map;
         }

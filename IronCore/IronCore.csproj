@@ -70,6 +70,7 @@
     <Content Include="Content\Maps\physics_map.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Content\Maps\physics.tmx" />
     <None Include="Content\Shaders\basic.vs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
