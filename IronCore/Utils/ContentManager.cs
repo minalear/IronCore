@@ -332,6 +332,7 @@ namespace IronCore.Utils
                     scientist.PhysicsBody.Position = ConvertUnits.ToSimUnits(position);
                     //scientist.PhysicsBody.BodyType = BodyType.Dynamic;
                     scientist.PhysicsBody.IsSensor = true;
+                    scientist.PhysicsBody.UserData = "Scientist";
 
                     scientists.Add(scientist);
                 }

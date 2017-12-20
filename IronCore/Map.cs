@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
@@ -61,6 +62,8 @@ namespace IronCore
                 {
                     Scientists[i].PhysicsBody.Dispose();
                     Scientists.RemoveAt(i--);
+
+                    ScientistRetrieved?.Invoke();
                 }
             }
         }
@@ -91,6 +94,8 @@ namespace IronCore
                 renderer.DrawCircle(Scientists[i].DisplayPosition, 1f, 6, Scientists[i].Color);
             }
         }
+
+        public event Action ScientistRetrieved;
     }
 
     public class Gate

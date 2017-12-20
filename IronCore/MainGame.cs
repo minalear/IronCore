@@ -17,6 +17,8 @@ namespace IronCore
         private ContentManager content;
         private ShapeRenderer renderer;
 
+        private InterfaceManager interfaceManager;
+
         private World world;
 
         private Body rocket;
@@ -26,10 +28,7 @@ namespace IronCore
         private List<Bullet> bullets;
         private float bulletCounter = 0f;
         private float playerHealth = 100f;
-
-        private Gate gate;
-        private CircleF sensor;
-        private Body sensorBody;
+        private int bulletCount = 200;
 
         public MainGame() : base("IronCore - Minalear", 800, 450) { }
 
@@ -42,13 +41,15 @@ namespace IronCore
         {
             content = new ContentManager("Content/");
             renderer = new ShapeRenderer(content, Window.Width, Window.Height);
+            interfaceManager = new InterfaceManager(content);
 
             renderer.SetCamera(Matrix4.CreateTranslation(Window.Width / 2f, Window.Height / 2f, 0f));
             
-            //levelGeometry = content.LoadMap(world, "Maps/test_map.json");
             map = content.LoadMap(world, "Maps/physics_map.json");
+            map.ScientistRetrieved += Map_ScientistRetrieved;
 
             initRocket();
+            updateUI();
             map.PlayerBody = rocket;
         }
 
@@ -89,13 +90,6 @@ namespace IronCore
                 Vector2 rightStick = gpadState.ThumbSticks.Right;
                 rocket.Rotation = (float)Math.Atan2(rightStick.X, rightStick.Y);
             }
-            /*if (gpadState.Buttons.A == ButtonState.Pressed)
-            {
-                float x = (float)Math.Sin(rocket.Rotation);
-                float y = -(float)Math.Cos(rocket.Rotation);
-
-                rocket.ApplyForce(new Vector2(0f, y) / 5f);
-            }*/
 
             if (gpadState.Buttons.RightShoulder == ButtonState.Pressed && bulletCounter == 0f)
             {
@@ -142,6 +136,9 @@ namespace IronCore
             renderer.DrawShape(rocketShape.VertexData, ColorUtils.Blend(Color4.LimeGreen, Color4.Red, playerHealth / 100f));
             
             renderer.End();
+
+            interfaceManager.Draw();
+
             Window.SwapBuffers();
         }
 
@@ -174,6 +171,11 @@ namespace IronCore
 
             rocketShape.VertexData[4] = width;
             rocketShape.VertexData[5] = height;
+        }
+        private void updateUI()
+        {
+            interfaceManager.SetStats(playerHealth, bulletCount);
+            interfaceManager.SetObjectives(map.Enemies.Count, map.Scientists.Count);
         }
 
         private void firePrimary()
@@ -214,6 +216,8 @@ namespace IronCore
 
         private void spawnBullet(Vector2 position, Vector2 velocity, float size, float damage)
         {
+            if (bulletCount == 0) return;
+
             Body physicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(size), 0.5f);
             physicsBody.Position = ConvertUnits.ToSimUnits(position);
             physicsBody.FixedRotation = true;
@@ -227,6 +231,9 @@ namespace IronCore
             physicsBody.UserData = new object[] { "Player_Bullet", bullet };
 
             bullets.Add(bullet);
+            bulletCount--;
+
+            updateUI();
         }
 
         private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
@@ -243,6 +250,8 @@ namespace IronCore
                     {
                         map.Enemies[i].PhysicsBody.Dispose();
                         map.Enemies.RemoveAt(i--);
+
+                        updateUI();
 
                         break;
                     }
@@ -262,7 +271,9 @@ namespace IronCore
         }
         private bool Rocket_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
-            if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Level"))
+            if (fixtureB.Body.UserData == null) return true;
+
+            if (fixtureB.Body.UserData.Equals("Level"))
             {
                 float velLength = rocket.LinearVelocity.Length;
                 if (velLength > 1f) //Deal damage
@@ -277,7 +288,12 @@ namespace IronCore
                 }
             }
 
+            updateUI();
             return true;
+        }
+        private void Map_ScientistRetrieved()
+        {
+            updateUI();
         }
     }
 
