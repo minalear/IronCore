@@ -64,6 +64,10 @@ namespace IronCore
         {
             GamePadState gpadState = GamePad.GetState(0);
 
+            //Update camera
+            Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(rocket.Position);
+            camera.SetPosition(-rocketPosition);
+
             //Bullet delay counter
             bulletCounter += gameTime.FrameDelta;
             if (bulletCounter > 0.08f)
@@ -79,7 +83,7 @@ namespace IronCore
                     bullets.RemoveAt(i--);
                 }
             }
-
+            
             //Process player input
             if (gpadState.ThumbSticks.Left.LengthSquared > 0.01f)
             {
@@ -115,8 +119,6 @@ namespace IronCore
                 fireSecondary();
             }
 
-            camera.SetScale(gpadState.Triggers.Left * 2f + 1f);
-            
             Window.Title = string.Format("{0} - +{1}",
                 ConvertUnits.ToDisplayUnits(rocket.Position),
                 ConvertUnits.ToDisplayUnits(rocket.LinearVelocity));
@@ -130,9 +132,6 @@ namespace IronCore
             GL.Clear(ClearBufferMask.ColorBufferBit);
             renderer.Begin();
             
-            Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(rocket.Position);
-
-            camera.SetPosition(-rocketPosition);
             renderer.SetCamera(camera.Transform);
 
             //Draw world geometry
@@ -144,6 +143,7 @@ namespace IronCore
                 renderer.DrawCircle(ConvertUnits.ToDisplayUnits(bullet.Body.Position), 1f, 4, Color4.Orange);
 
             //Draw rocket
+            Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(rocket.Position);
             renderer.SetTransform(
                 Matrix4.CreateRotationZ(rocket.Rotation) *
                 Matrix4.CreateTranslation(rocketPosition.X, rocketPosition.Y, 0f));
