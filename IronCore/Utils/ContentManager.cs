@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Drawing;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
 using FarseerPhysics.Factories;
 using Newtonsoft.Json;
+using IronCore.Entities;
 
 namespace IronCore.Utils
 {
@@ -143,7 +145,7 @@ namespace IronCore.Utils
             path = checkValidPath(path);
             MapFile mapData = JsonConvert.DeserializeObject<MapFile>(readAllText(path));
 
-            //Find the collision and gate map layers (this is pretty gross)
+            //TODO: Refactor this garbage
             int collisionIndex = -1;
             int gateIndex = -1;
             int enemyIndex = -1;
@@ -189,6 +191,8 @@ namespace IronCore.Utils
             if (objectiveIndex == -1)
                 throw new FileLoadException("Could not find objective layer in map file.");
 
+            Map map = new Map(world);
+
             var staticLevelGeometry = new List<StaticGeometry>();
 
             //Load static geometry
@@ -219,9 +223,6 @@ namespace IronCore.Utils
             }
 
             //Load Gates and Sensors
-            var gates = new List<Gate>();
-            var sensors = new List<Sensor>();
-
             for (int i = 0; i < mapData.Layers[gateIndex].Objects.Length; i++)
             {
                 ObjectInfo mapObject = mapData.Layers[gateIndex].Objects[i];
@@ -238,9 +239,8 @@ namespace IronCore.Utils
                     physicsBody.UserData = "Gate";
                     physicsBody.CollisionCategories = Category.Cat2;
 
-                    Gate gate = new Gate();
+                    Gate gate = new Gate(map, area);
                     gate.Name = mapObject.Name;
-                    gate.DisplayArea = area;
                     gate.PhysicsBody = physicsBody;
                     gate.StartPosition = simPosition;
 
@@ -256,8 +256,6 @@ namespace IronCore.Utils
 
                     gate.Timer = 0f;
                     gate.OpenTime = mapObject.Properties.ContainsKey("OpenTime") ? Convert.ToSingle(mapObject.Properties["OpenTime"]) : 5f;
-
-                    gates.Add(gate);
                 }
                 else if (mapObject.Type.Equals("Sensor"))
                 {
@@ -265,16 +263,21 @@ namespace IronCore.Utils
                     physicsBody.IsSensor = true;
                     physicsBody.CollisionCategories = Category.Cat1;
 
-                    Sensor sensor = new Sensor();
+                    Sensor sensor = new Sensor(map);
                     sensor.PhysicsBody = physicsBody;
                     sensor.TargetGateName = mapObject.Properties.ContainsKey("Gate") ? (string)mapObject.Properties["Gate"] : "None";
                     sensor.DisplayArea = area;
-
-                    sensors.Add(sensor);
                 }
             }
 
             //Pair sensors with gates
+            var gates = (from entity in map.Entities
+                         where entity.GetType() == typeof(Gate)
+                         select (Gate)entity).ToList();
+            var sensors = (from entity in map.Entities
+                         where entity.GetType() == typeof(Sensor)
+                         select (Sensor)entity).ToList();
+
             for (int i = 0; i < sensors.Count; i++)
             {
                 if (sensors[i].TargetGateName.Equals("None")) continue;
@@ -300,9 +303,7 @@ namespace IronCore.Utils
                     }
                 }
             }
-
-            var enemies = new List<Enemy>();
-
+            
             //Load enemies
             for (int i = 0; i < mapData.Layers[enemyIndex].Objects.Length; i++)
             {
@@ -310,19 +311,15 @@ namespace IronCore.Utils
 
                 CircleF area = new CircleF(enemyObject.X, enemyObject.Y, 6f);
 
-                Enemy enemy = new Enemy();
+                Enemy enemy = new Enemy(map);
                 enemy.PhysicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(area.Radius), 88.5f);
                 enemy.PhysicsBody.Position = ConvertUnits.ToSimUnits(area.Position);
                 enemy.PhysicsBody.UserData = "Enemy";
                 enemy.PhysicsBody.CollisionCategories = Category.Cat2;
                 enemy.Area = area;
                 enemy.CurrentHealth = 10f;
-
-                enemies.Add(enemy);
             }
-
-            var scientists = new List<Scientist>();
-
+            
             //Load objectives
             for (int i = 0; i < mapData.Layers[objectiveIndex].Objects.Length; i++)
             {
@@ -333,15 +330,13 @@ namespace IronCore.Utils
                 for (int k = 0; k < scientistCount; k++)
                 {
                     Vector2 position = new Vector2(RNG.NextFloat(area.Left, area.Right), area.Bottom - 2f);
-                    Scientist scientist = new Scientist(position, area);
+                    Scientist scientist = new Scientist(map, position, area);
 
                     scientist.PhysicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 5f);
                     scientist.PhysicsBody.Position = ConvertUnits.ToSimUnits(position);
                     //scientist.PhysicsBody.BodyType = BodyType.Dynamic;
                     scientist.PhysicsBody.IsSensor = true;
                     scientist.PhysicsBody.UserData = "Scientist";
-
-                    scientists.Add(scientist);
                 }
             }
 
@@ -383,14 +378,9 @@ namespace IronCore.Utils
                 waterBody.PhysicsBody = geoBody;
                 waterBodies.Add(waterBody);
             }
-
-            Map map = new Map(world);
+            
             map.StaticGeometry = staticLevelGeometry;
             map.WaterBodies = waterBodies;
-            map.Gates = gates;
-            map.Sensors = sensors;
-            map.Enemies = enemies;
-            map.Scientists = scientists;
 
             return map;
         }

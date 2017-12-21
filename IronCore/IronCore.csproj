@@ -59,6 +59,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
+    <Compile Include="Entities\Enemy.cs" />
+    <Compile Include="Entities\Entity.cs" />
+    <Compile Include="Entities\Gate.cs" />
+    <Compile Include="Entities\Scientist.cs" />
+    <Compile Include="Entities\Sensor.cs" />
     <Compile Include="InterfaceManager.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="Map.cs" />

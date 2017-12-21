@@ -189,7 +189,7 @@ namespace IronCore
         private void updateUI()
         {
             interfaceManager.SetStats(playerHealth, bulletCount);
-            interfaceManager.SetObjectives(map.Enemies.Count, map.Scientists.Count);
+            //interfaceManager.SetObjectives(map.Enemies.Count, map.Scientists.Count);
         }
 
         private void firePrimary()
@@ -254,7 +254,7 @@ namespace IronCore
         {
             if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Enemy"))
             {
-                Bullet bullet = (Bullet)((object[])fixtureA.Body.UserData)[1]; //Gross
+                /*Bullet bullet = (Bullet)((object[])fixtureA.Body.UserData)[1]; //Gross
                 for (int i = 0; i < map.Enemies.Count; i++)
                 {
                     if (map.Enemies[i].PhysicsBody.BodyId != fixtureB.Body.BodyId) continue;
@@ -269,7 +269,7 @@ namespace IronCore
 
                         break;
                     }
-                }
+                }*/
             }
 
             for (int i = 0; i < bullets.Count; i++)
