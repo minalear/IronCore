@@ -26,8 +26,8 @@ namespace IronCore.Entities
 
         public override void Update(GameTime gameTime)
         {
-            float distToPlayer = map.PlayerBody.Position.DistanceSquared(PhysicsBody.Position);
-            float playerVel = map.PlayerBody.LinearVelocity.LengthSquared;
+            float distToPlayer = map.Player.PhysicsBody.Position.DistanceSquared(PhysicsBody.Position);
+            float playerVel = map.Player.PhysicsBody.LinearVelocity.LengthSquared;
 
             if (distToPlayer > 0.1f || playerVel != 0f) //Patrol
             {
@@ -49,7 +49,7 @@ namespace IronCore.Entities
             {
                 Color = Color4.DarkGoldenrod;
 
-                positionMod = (map.PlayerBody.Position.X < PhysicsBody.Position.X) ? -1f : 1f;
+                positionMod = (map.Player.PhysicsBody.Position.X < PhysicsBody.Position.X) ? -1f : 1f;
                 positionTracker += 0.003f * positionMod;
 
                 if (distToPlayer <= 0.002f)

@@ -5,6 +5,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using FarseerPhysics;
 using FarseerPhysics.Dynamics;
+using FarseerPhysics.Factories;
 using IronCore.Utils;
 using IronCore.Entities;
 
@@ -13,7 +14,7 @@ namespace IronCore
     public class Map
     {
         public World World;
-        public Body PlayerBody;
+        public Player Player;
         
         public List<StaticGeometry> StaticGeometry;
         public List<StaticGeometry> WaterBodies;
@@ -37,6 +38,7 @@ namespace IronCore
                     entities.RemoveAt(i--);
                 }
             }
+            Player.Update(gameTime);
 
             //Update world gates
             /*
@@ -69,12 +71,63 @@ namespace IronCore
             {
                 entities[i].Draw(renderer);
             }
+            Player.Draw(renderer);
 
             for (int i = 0; i < StaticGeometry.Count; i++)
             {
                 renderer.FillShape(StaticGeometry[i].VertexData, Color4.Black);
                 renderer.DrawShape(StaticGeometry[i].VertexData, Color4.LimeGreen);
             }
+        }
+        public void SpawnBullet(Entity owner, Vector2 position, Vector2 velocity, float size, float damage)
+        {
+            Body physicsBody = BodyFactory.CreateCircle(World, ConvertUnits.ToSimUnits(size), 0.5f);
+            physicsBody.Position = ConvertUnits.ToSimUnits(position);
+            physicsBody.FixedRotation = true;
+            physicsBody.BodyType = BodyType.Dynamic;
+            physicsBody.IsBullet = true;
+            physicsBody.OnCollision += Bullet_OnCollision;
+            physicsBody.ApplyLinearImpulse(velocity);
+            physicsBody.CollidesWith = (Category.All ^ Category.Cat1);
+
+            Bullet bullet = new Bullet(this, damage);
+            bullet.PhysicsBody = physicsBody;
+
+            physicsBody.UserData = new object[] { "Player_Bullet", bullet };
+        }
+
+        private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
+        {
+            if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.Equals("Enemy"))
+            {
+                /*Bullet bullet = (Bullet)((object[])fixtureA.Body.UserData)[1]; //Gross
+                for (int i = 0; i < map.Enemies.Count; i++)
+                {
+                    if (map.Enemies[i].PhysicsBody.BodyId != fixtureB.Body.BodyId) continue;
+
+                    map.Enemies[i].CurrentHealth -= bullet.Damage;
+                    if (map.Enemies[i].CurrentHealth <= 0f)
+                    {
+                        map.Enemies[i].PhysicsBody.Dispose();
+                        map.Enemies.RemoveAt(i--);
+
+                        updateUI();
+
+                        break;
+                    }
+                }*/
+            }
+
+            for (int i = 0; i < entities.Count; i++)
+            {
+                if (entities[i].PhysicsBody.BodyId == fixtureA.Body.BodyId)
+                {
+                    entities[i].Purge();
+                    break;
+                }
+            }
+
+            return true;
         }
 
         public event Action ScientistRetrieved;

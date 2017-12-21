@@ -19,12 +19,12 @@ namespace IronCore.Entities
         public override void Update(GameTime gameTime)
         {
             Color = Color4.Cyan;
-            float distToPlayer = map.PlayerBody.Position.DistanceSquared(PhysicsBody.Position);
+            float distToPlayer = map.Player.PhysicsBody.Position.DistanceSquared(PhysicsBody.Position);
             if (distToPlayer > 50f) return;
 
             //TODO: Profile and optimize enemy->player detection
             var fixtureList =
-                (from fixture in map.World.RayCast(PhysicsBody.Position, map.PlayerBody.Position)
+                (from fixture in map.World.RayCast(PhysicsBody.Position, map.Player.PhysicsBody.Position)
                  where fixture.CollisionCategories == Category.Cat2
                  select fixture).ToList();
             if (fixtureList.Count <= 1)
