@@ -30,7 +30,11 @@ namespace IronCore
         private float playerHealth = 100f;
         private int bulletCount = 200;
 
-        public MainGame() : base("IronCore - Minalear", 800, 450) { }
+        public MainGame() : base("IronCore - Minalear", 800, 450)
+        {
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+        }
 
         public override void Initialize()
         {
@@ -83,7 +87,15 @@ namespace IronCore
                 leftStick.Y = -leftStick.Y;
 
                 float mod = gpadState.Triggers.Right + 1f;
+                Vector2 force = leftStick * mod / 5f;
                 rocket.ApplyForce(leftStick * mod / 5f);
+
+                //Be sure to implement water slowing down the ship
+                /*
+                 if (Player.InWater) {
+                    rocket.ApplyForce(-force / 2f);
+                 }
+                */
             }
             if (gpadState.ThumbSticks.Right.LengthSquared > 0.01f)
             {
@@ -99,7 +111,7 @@ namespace IronCore
             {
                 fireSecondary();
             }
-
+            
             Window.Title = string.Format("{0} - +{1}",
                 ConvertUnits.ToDisplayUnits(rocket.Position),
                 ConvertUnits.ToDisplayUnits(rocket.LinearVelocity));

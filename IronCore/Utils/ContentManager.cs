@@ -143,11 +143,13 @@ namespace IronCore.Utils
             path = checkValidPath(path);
             MapFile mapData = JsonConvert.DeserializeObject<MapFile>(readAllText(path));
 
-            //Find the collision and gate map layers
+            //Find the collision and gate map layers (this is pretty gross)
             int collisionIndex = -1;
             int gateIndex = -1;
             int enemyIndex = -1;
             int objectiveIndex = -1;
+            int waterIndex = -1; 
+
             for (int i = 0; i < mapData.Layers.Length; i++)
             {
                 if (mapData.Layers[i].Name.Equals("Collision", StringComparison.OrdinalIgnoreCase) &&
@@ -169,6 +171,11 @@ namespace IronCore.Utils
                     mapData.Layers[i].Type.Equals("objectgroup", StringComparison.OrdinalIgnoreCase))
                 {
                     objectiveIndex = i;
+                }
+                if (mapData.Layers[i].Name.Equals("Water", StringComparison.OrdinalIgnoreCase) &&
+                    mapData.Layers[i].Type.Equals("objectgroup", StringComparison.OrdinalIgnoreCase))
+                {
+                    waterIndex = i;
                 }
             }
 
@@ -338,8 +345,48 @@ namespace IronCore.Utils
                 }
             }
 
+            List<StaticGeometry> waterBodies = new List<StaticGeometry>();
+
+            //Set water zones
+            for (int i = 0; i < mapData.Layers[waterIndex].Objects.Length; i++)
+            {
+                ObjectInfo waterObject = mapData.Layers[waterIndex].Objects[i];
+                //if (waterObject.Polygon == null) continue;
+
+                Vertices simGeo = new Vertices(waterObject.Polygon.Length);
+                StaticGeometry waterBody = new StaticGeometry(waterObject.Polygon.Length * 2);
+
+                //Loop through the object's vertices (Vector2)
+                for (int k = 0; k < waterObject.Polygon.Length; k++)
+                {
+                    simGeo.Add(ConvertUnits.ToSimUnits(waterObject.Polygon[k]));
+
+                    waterBody.VertexData[k * 2 + 0] = waterObject.Polygon[k].X + waterObject.X;
+                    waterBody.VertexData[k * 2 + 1] = waterObject.Polygon[k].Y + waterObject.Y;
+                }
+
+                Body geoBody = BodyFactory.CreatePolygon(world, simGeo, 1f);
+                geoBody.Position = ConvertUnits.ToSimUnits(new Vector2(waterObject.X, waterObject.Y));
+                geoBody.UserData = "Water";
+                geoBody.CollisionCategories = Category.Cat2;
+                geoBody.IsSensor = true;
+                geoBody.OnCollision += (a, b, contact) =>
+                {
+                    b.Body.GravityScale = 0.05f;
+                    return true;
+                };
+                geoBody.OnSeparation += (a, b) =>
+                {
+                    b.Body.GravityScale = 1f;
+                };
+
+                waterBody.PhysicsBody = geoBody;
+                waterBodies.Add(waterBody);
+            }
+
             Map map = new Map(world);
             map.StaticGeometry = staticLevelGeometry;
+            map.WaterBodies = waterBodies;
             map.Gates = gates;
             map.Sensors = sensors;
             map.Enemies = enemies;

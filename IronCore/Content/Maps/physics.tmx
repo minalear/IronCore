@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="240" height="135" tilewidth="8" tileheight="8" backgroundcolor="#ffffff" nextobjectid="506">
+<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="240" height="135" tilewidth="8" tileheight="8" backgroundcolor="#ffffff" nextobjectid="508">
  <objectgroup name="Collision" opacity="0.11">
   <object id="1" x="0" y="272">
    <polygon points="0,0 8,8 0,16"/>
@@ -1428,7 +1428,7 @@
   <object id="495" x="1272" y="824">
    <ellipse/>
   </object>
-  <object id="496" x="1152" y="1016">
+  <object id="496" x="1032" y="824">
    <ellipse/>
   </object>
   <object id="497" x="1384" y="672">
@@ -1442,6 +1442,11 @@
   </object>
   <object id="500" x="456" y="528">
    <ellipse/>
+  </object>
+ </objectgroup>
+ <objectgroup name="Water">
+  <object id="507" x="1096" y="1000">
+   <polygon points="0,0 0,56 120,64 208,40 224,0"/>
   </object>
  </objectgroup>
  <objectgroup name="Objectives">

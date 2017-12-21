@@ -12010,8 +12010,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":1152,
-                 "y":1016
+                 "x":1032,
+                 "y":824
                 }, 
                 {
                  "ellipse":true,
@@ -12060,6 +12060,48 @@
                  "width":0,
                  "x":456,
                  "y":528
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "name":"Water",
+         "objects":[
+                {
+                 "height":0,
+                 "id":507,
+                 "name":"",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":0,
+                         "y":56
+                        }, 
+                        {
+                         "x":120,
+                         "y":64
+                        }, 
+                        {
+                         "x":208,
+                         "y":40
+                        }, 
+                        {
+                         "x":224,
+                         "y":0
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":1096,
+                 "y":1000
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -12121,7 +12163,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":506,
+ "nextobjectid":508,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.0.3",

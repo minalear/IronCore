@@ -13,8 +13,9 @@ namespace IronCore
     {
         public World World;
         public Body PlayerBody;
-
+        
         public List<StaticGeometry> StaticGeometry;
+        public List<StaticGeometry> WaterBodies;
         public List<Gate> Gates;
         public List<Sensor> Sensors;
         public List<Enemy> Enemies;
@@ -70,6 +71,13 @@ namespace IronCore
         public void Draw(ShapeRenderer renderer)
         {
             renderer.SetTransform(Matrix4.Identity);
+
+            //Draw water
+            for (int i = 0; i < WaterBodies.Count; i++)
+            {
+                renderer.FillShape(WaterBodies[i].VertexData, new Color4(0, 174, 239, 60));
+                renderer.DrawShape(WaterBodies[i].VertexData, new Color4(0, 174, 239, 255));
+            }
 
             for (int i = 0; i < Gates.Count; i++)
             {
