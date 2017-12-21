@@ -21,7 +21,9 @@ namespace IronCore.Utils
             vertexArray.Unbind();
             
             shader.Use();
-            shader.SetMatrix4("proj", false, Matrix4.CreateOrthographicOffCenter(0f, width, height, 0f, -1f, 1f));
+            //shader.SetMatrix4("proj", false, Matrix4.CreateOrthographicOffCenter(0f, width, height, 0f, -1f, 1f));
+            shader.SetMatrix4("proj", false, Matrix4.CreateOrthographicOffCenter(-width / 2f, width / 2f, height / 2f, -height / 2f, -1f, 1f));
+
             shader.SetColor4("drawColor", Color4.Black);
             ClearTransform(); //Set model transform
             ClearCamera();

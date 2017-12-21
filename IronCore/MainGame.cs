@@ -20,6 +20,7 @@ namespace IronCore
         private InterfaceManager interfaceManager;
 
         private World world;
+        private Camera camera;
 
         private Body rocket;
         private StaticGeometry rocketShape;
@@ -40,6 +41,8 @@ namespace IronCore
         {
             world = new World(new Vector2(0f, 9.8f));
             bullets = new List<Bullet>();
+
+            camera = new Camera(Vector2.Zero, 2f);
         }
         public override void LoadContent()
         {
@@ -111,6 +114,8 @@ namespace IronCore
             {
                 fireSecondary();
             }
+
+            camera.SetScale(gpadState.Triggers.Left * 2f + 1f);
             
             Window.Title = string.Format("{0} - +{1}",
                 ConvertUnits.ToDisplayUnits(rocket.Position),
@@ -124,14 +129,11 @@ namespace IronCore
         {
             GL.Clear(ClearBufferMask.ColorBufferBit);
             renderer.Begin();
-
-            const float cameraScale = 2f;
+            
             Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(rocket.Position);
-            Vector2 cameraCenter = -rocketPosition + new Vector2(Window.Width / 2f, Window.Height / 2f) / cameraScale;
 
-            renderer.SetCamera(
-                Matrix4.CreateTranslation(cameraCenter.X, cameraCenter.Y, 0f) *
-                Matrix4.CreateScale(cameraScale));
+            camera.SetPosition(-rocketPosition);
+            renderer.SetCamera(camera.Transform);
 
             //Draw world geometry
             renderer.SetTransform(Matrix4.Identity);

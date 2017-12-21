@@ -13,6 +13,7 @@ namespace IronCore.Utils
         public Game(string title, int width, int height)
         {
             window = new GameWindow(width, height, new GraphicsMode(32, 24, 8, 4), title, GameWindowFlags.Default);
+            //window = new GameWindow(width, height, GraphicsMode.Default, title, GameWindowFlags.Default);
             window.RenderFrame += (sender, e) => renderFrame(e);
             window.UpdateFrame += (sender, e) => updateFrame(e);
             window.Resize += (sender, e) => Resize(Window.Width, Window.Height);

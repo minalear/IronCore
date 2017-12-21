@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Camera.cs" />
     <Compile Include="InterfaceManager.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="Map.cs" />
