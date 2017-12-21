@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using IronCore.Utils;
 using FarseerPhysics;
-using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
-using FarseerPhysics.Factories;
 
 namespace IronCore
 {
@@ -45,8 +41,6 @@ namespace IronCore
             
             map = content.LoadMap(world, "Maps/physics_map.json");
             map.Player = new Entities.Player(map);
-
-            map.ScientistRetrieved += Map_ScientistRetrieved;
 
             updateUI();
         }
@@ -88,11 +82,6 @@ namespace IronCore
         {
             interfaceManager.SetStats(map.Player.Health, map.Player.AmmoCount);
             interfaceManager.SetObjectives(map.EnemyCount, map.ScientistCount);
-        }
-
-        private void Map_ScientistRetrieved()
-        {
-            updateUI();
         }
     }
 }
