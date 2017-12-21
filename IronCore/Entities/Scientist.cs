@@ -54,7 +54,8 @@ namespace IronCore.Entities
 
                 if (distToPlayer <= 0.002f)
                 {
-                    DoPurge = true;
+                    map.ScientistCount--;
+                    PurgeSelf();
                 }
             }
 

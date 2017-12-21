@@ -19,6 +19,8 @@ namespace IronCore
         public List<StaticGeometry> StaticGeometry;
         public List<StaticGeometry> WaterBodies;
 
+        public int ScientistCount, EnemyCount;
+
         private List<Entity> entities;
 
         public Map(World world)
@@ -38,7 +40,7 @@ namespace IronCore
                     entities.RemoveAt(i--);
                 }
             }
-            Player.Update(gameTime);
+            //Player.Update(gameTime);
 
             //Update world gates
             /*
@@ -71,7 +73,7 @@ namespace IronCore
             {
                 entities[i].Draw(renderer);
             }
-            Player.Draw(renderer);
+            //Player.Draw(renderer);
 
             for (int i = 0; i < StaticGeometry.Count; i++)
             {
@@ -90,10 +92,8 @@ namespace IronCore
             physicsBody.ApplyLinearImpulse(velocity);
             physicsBody.CollidesWith = (Category.All ^ Category.Cat1);
 
-            Bullet bullet = new Bullet(this, damage);
-            bullet.PhysicsBody = physicsBody;
-
-            physicsBody.UserData = new object[] { "Player_Bullet", bullet };
+            Bullet bullet = new Bullet(this, owner, damage);
+            bullet.SetPhysicsBody(physicsBody);
         }
 
         private bool Bullet_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
@@ -122,7 +122,7 @@ namespace IronCore
             {
                 if (entities[i].PhysicsBody.BodyId == fixtureA.Body.BodyId)
                 {
-                    entities[i].Purge();
+                    entities[i].PurgeSelf();
                     break;
                 }
             }

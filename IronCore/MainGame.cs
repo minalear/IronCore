@@ -66,6 +66,7 @@ namespace IronCore
 
             //Simulate world
             world.Step(0.01f);
+            updateUI();
         }
         public override void Draw(GameTime gameTime)
         {
@@ -85,8 +86,8 @@ namespace IronCore
 
         private void updateUI()
         {
-            //interfaceManager.SetStats(playerHealth, bulletCount);
-            //interfaceManager.SetObjectives(map.Enemies.Count, map.Scientists.Count);
+            interfaceManager.SetStats(map.Player.Health, map.Player.AmmoCount);
+            interfaceManager.SetObjectives(map.EnemyCount, map.ScientistCount);
         }
 
         private void Map_ScientistRetrieved()

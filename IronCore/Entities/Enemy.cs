@@ -34,5 +34,22 @@ namespace IronCore.Entities
         {
             renderer.DrawCircle(Area, 24, Color);
         }
+
+        public override void OnEntityCollision(Entity other)
+        {
+            //TODO: Change entities to use a unique id to cut down on type comparisons
+            if (other.GetType() == typeof(Bullet))
+            {
+                Bullet bullet = ((Bullet)other);
+                if (bullet.Owner.GetType() == typeof(Player))
+                    CurrentHealth -= bullet.Damage;
+
+                if (CurrentHealth <= 0f)
+                {
+                    PurgeSelf();
+                    map.EnemyCount--;
+                }
+            }
+        }
     }
 }

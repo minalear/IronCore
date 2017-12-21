@@ -2,6 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using FarseerPhysics.Dynamics;
+using FarseerPhysics.Dynamics.Contacts;
 using IronCore.Utils;
 
 namespace IronCore.Entities
@@ -20,13 +21,44 @@ namespace IronCore.Entities
         public virtual void Update(GameTime gameTime) { }
         public virtual void Draw(ShapeRenderer renderer) { }
 
-        public virtual void Purge()
+        public virtual void PurgeSelf()
         {
+            OnPurge?.Invoke(this);
+
             DoPurge = true;
             physicsBody.Dispose();
         }
+        public virtual void OnEntityCollision(Entity other) { }
+        public virtual void OnEntitySeparation(Entity other) { }
+
+        public void SetPhysicsBody(Body body)
+        {
+            physicsBody = body;
+            physicsBody.UserData = this;
+            physicsBody.OnCollision += physicsBodyOnCollision;
+            physicsBody.OnSeparation += physicsBodyOnSeparation;
+        }
         
-        public Body PhysicsBody { get { return physicsBody; } set { physicsBody = value; } }
-        public bool DoPurge { get; protected set; }
+        protected virtual bool physicsBodyOnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
+        {
+            if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.GetType().IsSubclassOf(typeof(Entity)))
+            {
+                OnEntityCollision((Entity)fixtureB.Body.UserData);
+            }
+
+            return true;
+        }
+        protected virtual void physicsBodyOnSeparation(Fixture fixtureA, Fixture fixtureB)
+        {
+            if (fixtureB.Body.UserData != null && fixtureB.Body.UserData.GetType().IsSubclassOf(typeof(Entity)))
+            {
+                OnEntitySeparation((Entity)fixtureB.Body.UserData);
+            }
+        }
+
+        public event Action<Entity> OnPurge;
+        
+        public Body PhysicsBody { get { return physicsBody; } }
+        public bool DoPurge { get; private set; }
     }
 }

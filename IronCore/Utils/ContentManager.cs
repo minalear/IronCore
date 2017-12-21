@@ -236,13 +236,12 @@ namespace IronCore.Utils
 
                 if (mapObject.Type.Equals("Gate"))
                 {
-                    physicsBody.UserData = "Gate";
                     physicsBody.CollisionCategories = Category.Cat2;
 
                     Gate gate = new Gate(map, area);
                     gate.Name = mapObject.Name;
-                    gate.PhysicsBody = physicsBody;
                     gate.StartPosition = simPosition;
+                    gate.SetPhysicsBody(physicsBody);
 
                     //Gate end positions based on how it slides
                     if (mapObject.Properties["Slide"].Equals("Left"))
@@ -259,12 +258,11 @@ namespace IronCore.Utils
                 }
                 else if (mapObject.Type.Equals("Sensor"))
                 {
-                    physicsBody.UserData = "Sensor";
                     physicsBody.IsSensor = true;
                     physicsBody.CollisionCategories = Category.Cat1;
 
                     Sensor sensor = new Sensor(map);
-                    sensor.PhysicsBody = physicsBody;
+                    sensor.SetPhysicsBody(physicsBody);
                     sensor.TargetGateName = mapObject.Properties.ContainsKey("Gate") ? (string)mapObject.Properties["Gate"] : "None";
                     sensor.DisplayArea = area;
                 }
@@ -289,16 +287,7 @@ namespace IronCore.Utils
                         //Set target gate and setup event trigger
                         Sensor sensor = sensors[i];
                         sensor.TargetGate = gates[k];
-                        sensor.PhysicsBody.OnCollision += (self, other, contact) =>
-                        {
-                            if (other.Body.UserData != null && other.Body.UserData.Equals("Player"))
-                            {
-                                sensor.OpenGate();
-                                return true;
-                            }
-                            return false;
-                        };
-
+                        
                         break;
                     }
                 }
@@ -312,12 +301,13 @@ namespace IronCore.Utils
                 CircleF area = new CircleF(enemyObject.X, enemyObject.Y, 6f);
 
                 Enemy enemy = new Enemy(map);
-                enemy.PhysicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(area.Radius), 88.5f);
+                enemy.SetPhysicsBody(BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(area.Radius), 88.5f));
                 enemy.PhysicsBody.Position = ConvertUnits.ToSimUnits(area.Position);
-                enemy.PhysicsBody.UserData = "Enemy";
                 enemy.PhysicsBody.CollisionCategories = Category.Cat2;
                 enemy.Area = area;
                 enemy.CurrentHealth = 10f;
+
+                map.EnemyCount++;
             }
             
             //Load objectives
@@ -332,12 +322,13 @@ namespace IronCore.Utils
                     Vector2 position = new Vector2(RNG.NextFloat(area.Left, area.Right), area.Bottom - 2f);
                     Scientist scientist = new Scientist(map, position, area);
 
-                    scientist.PhysicsBody = BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 5f);
+                    scientist.SetPhysicsBody(BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(1f), 5f));
                     scientist.PhysicsBody.Position = ConvertUnits.ToSimUnits(position);
                     //scientist.PhysicsBody.BodyType = BodyType.Dynamic;
                     scientist.PhysicsBody.IsSensor = true;
-                    scientist.PhysicsBody.UserData = "Scientist";
                 }
+
+                map.ScientistCount += scientistCount;
             }
 
             List<StaticGeometry> waterBodies = new List<StaticGeometry>();

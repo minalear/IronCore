@@ -8,11 +8,13 @@ namespace IronCore.Entities
 {
     public class Bullet : Entity
     {
+        public Entity Owner;
         public float Lifetime;
         public float Damage;
 
-        public Bullet(Map map, float damage) : base(map)
+        public Bullet(Map map, Entity owner, float damage) : base(map)
         {
+            Owner = owner;
             Damage = damage;
         }
 
@@ -21,7 +23,7 @@ namespace IronCore.Entities
             Lifetime += gameTime.FrameDelta;
             if (Lifetime > 5f)
             {
-                DoPurge = true;
+                PurgeSelf();
             }
         }
         public override void Draw(ShapeRenderer renderer)

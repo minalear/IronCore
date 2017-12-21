@@ -24,5 +24,13 @@ namespace IronCore.Entities
             Color4 drawColor = TargetGate.MoveGate ? Color4.MediumPurple : Color4.Orange;
             renderer.DrawRect(DisplayArea, drawColor);
         }
+
+        public override void OnEntityCollision(Entity other)
+        {
+            if (other.GetType() == typeof(Player))
+            {
+                OpenGate();
+            }
+        }
     }
 }

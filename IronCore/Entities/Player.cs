@@ -13,6 +13,7 @@ namespace IronCore.Entities
     public class Player : Entity
     {
         private StaticGeometry shape;
+        private float health = 100f;
         private int ammoCount = 200;
         private float bulletCounter = 0f;
 
@@ -26,12 +27,11 @@ namespace IronCore.Entities
             vertices.Add(ConvertUnits.ToSimUnits(new Vector2(-width, height)));
             vertices.Add(ConvertUnits.ToSimUnits(new Vector2(width, height)));
 
-            physicsBody = BodyFactory.CreatePolygon(map.World, vertices, 5f);
+            Body physicsBody = BodyFactory.CreatePolygon(map.World, vertices, 5f);
             physicsBody.BodyType = BodyType.Dynamic;
             physicsBody.Position = ConvertUnits.ToSimUnits(new Vector2(830f, 298f));
             physicsBody.AngularDamping = 300f;
             physicsBody.LinearDamping = 8f;
-            physicsBody.UserData = "Player";
             physicsBody.OnCollision += Rocket_OnCollision;
 
             shape = new StaticGeometry(6);
@@ -45,6 +45,8 @@ namespace IronCore.Entities
 
             shape.VertexData[4] = width;
             shape.VertexData[5] = height;
+
+            SetPhysicsBody(physicsBody);
         }
 
         public override void Update(GameTime gameTime)
@@ -96,6 +98,8 @@ namespace IronCore.Entities
 
         private void firePrimary()
         {
+            if (ammoCount <= 0) return;
+
             Vector2 direction = new Vector2(
                 (float)Math.Sin(physicsBody.Rotation),
                 -(float)Math.Cos(physicsBody.Rotation));
@@ -106,9 +110,12 @@ namespace IronCore.Entities
 
             //Apply inverse force to rocket
             physicsBody.ApplyForce(-velocity);
+            ammoCount -= 1;
         }
         private void fireSecondary()
         {
+            if (ammoCount <= 1) return;
+
             Vector2 direction = new Vector2(
                 (float)Math.Sin(physicsBody.Rotation),
                 -(float)Math.Cos(physicsBody.Rotation));
@@ -128,6 +135,7 @@ namespace IronCore.Entities
             //Apply inverse force to rocket
             physicsBody.ApplyForce(-left / 500f);
             physicsBody.ApplyForce(-right / 500f);
+            ammoCount -= 2;
         }
 
         private bool Rocket_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
@@ -152,5 +160,8 @@ namespace IronCore.Entities
             //updateUI();
             return true;
         }
+
+        public float Health { get { return health; } set { health = value; } }
+        public int AmmoCount { get { return ammoCount; } set { ammoCount = value; } }
     }
 }
