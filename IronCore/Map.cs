@@ -57,6 +57,10 @@ namespace IronCore
                 entities[i].Draw(renderer);
             }
 
+            //TODO: Consider rendering static geometry to a texture for performant rendering
+            //Or put all of the static geometry into one VBO and render it in one shot, rather than
+            //depend on the shape renderer
+
             //Draw static geometry
             for (int i = 0; i < StaticGeometry.Count; i++)
             {
