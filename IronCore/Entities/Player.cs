@@ -7,11 +7,13 @@ using FarseerPhysics.Common;
 using FarseerPhysics.Dynamics;
 using FarseerPhysics.Factories;
 using IronCore.Utils;
+using IronCore.Controllers;
 
 namespace IronCore.Entities
 {
     public class Player : Entity
     {
+        private PlayerController controller;
         private StaticGeometry shape;
         private float health = 100f;
         private int ammoCount = 200;
@@ -47,46 +49,13 @@ namespace IronCore.Entities
             shape.VertexData[5] = height;
 
             SetPhysicsBody(physicsBody);
+            controller = new PlayerController(this);
         }
 
         public override void Update(GameTime gameTime)
         {
-            var gpadState = GamePad.GetState(0);
-
-            //Movement
-            if (gpadState.ThumbSticks.Left.LengthSquared > 0.01f)
-            {
-                Vector2 leftStick = gpadState.ThumbSticks.Left;
-                PhysicsBody.Rotation = (float)Math.Atan2(leftStick.X, leftStick.Y);
-
-                //Only apply horizontal thrust
-                leftStick.Y = -leftStick.Y;
-
-                float mod = gpadState.Triggers.Right + 1f;
-                Vector2 force = leftStick * mod / 5f;
-                PhysicsBody.ApplyForce(leftStick * mod / 5f);
-            }
-            if (gpadState.ThumbSticks.Right.LengthSquared > 0.01f)
-            {
-                Vector2 rightStick = gpadState.ThumbSticks.Right;
-                PhysicsBody.Rotation = (float)Math.Atan2(rightStick.X, rightStick.Y);
-            }
-
-            //Guns
             bulletCounter += gameTime.FrameDelta;
-
-            if (gpadState.Buttons.RightShoulder == ButtonState.Pressed && bulletCounter > 0.08f)
-            {
-                firePrimary();
-                bulletCounter = 0f;
-                InterfaceManager.UpdateUI = true;
-            }
-            else if (gpadState.Buttons.LeftShoulder == ButtonState.Pressed && bulletCounter > 0.08f)
-            {
-                fireSecondary();
-                bulletCounter = 0f;
-                InterfaceManager.UpdateUI = true;
-            }
+            controller.Update(gameTime);
         }
         public override void Draw(ShapeRenderer renderer)
         {
@@ -98,9 +67,9 @@ namespace IronCore.Entities
             renderer.ClearTransform();
         }
 
-        private void firePrimary()
+        public void FirePrimary()
         {
-            if (ammoCount <= 0) return;
+            if (bulletCounter < 0.08f || ammoCount <= 0) return;
 
             Vector2 direction = new Vector2(
                 (float)Math.Sin(physicsBody.Rotation),
@@ -113,10 +82,11 @@ namespace IronCore.Entities
             //Apply inverse force to rocket
             physicsBody.ApplyForce(-velocity);
             ammoCount -= 1;
+            bulletCounter = 0f;
         }
-        private void fireSecondary()
+        public void FireSecondary()
         {
-            if (ammoCount <= 1) return;
+            if (bulletCounter < 0.08f || ammoCount <= 1) return;
 
             Vector2 direction = new Vector2(
                 (float)Math.Sin(physicsBody.Rotation),
@@ -138,6 +108,7 @@ namespace IronCore.Entities
             physicsBody.ApplyForce(-left / 500f);
             physicsBody.ApplyForce(-right / 500f);
             ammoCount -= 2;
+            bulletCounter = 0f;
         }
 
         private bool Rocket_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
