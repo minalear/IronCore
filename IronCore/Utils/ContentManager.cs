@@ -181,6 +181,8 @@ namespace IronCore.Utils
                 }
             }
 
+            //TODO: Organize and figure out collision categories
+
             //Check for valid layers
             if (collisionIndex == -1)
                 throw new FileLoadException("Could not find collision layer in map file.");
@@ -354,7 +356,7 @@ namespace IronCore.Utils
                 Body geoBody = BodyFactory.CreatePolygon(world, simGeo, 1f);
                 geoBody.Position = ConvertUnits.ToSimUnits(new Vector2(waterObject.X, waterObject.Y));
                 geoBody.UserData = "Water";
-                geoBody.CollisionCategories = Category.Cat2;
+                geoBody.CollisionCategories = Category.Cat3;
                 geoBody.IsSensor = true;
                 geoBody.OnCollision += (a, b, contact) =>
                 {

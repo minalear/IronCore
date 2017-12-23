@@ -72,7 +72,7 @@ namespace IronCore
             physicsBody.BodyType = BodyType.Dynamic;
             physicsBody.IsBullet = true;
             physicsBody.ApplyLinearImpulse(velocity);
-            physicsBody.CollidesWith = (Category.All ^ Category.Cat1);
+            physicsBody.CollidesWith = (Category.All ^ (Category.Cat1 | Category.Cat3));
 
             Bullet bullet = new Bullet(this, owner, damage);
             bullet.SetPhysicsBody(physicsBody);
