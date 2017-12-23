@@ -49,5 +49,7 @@ namespace IronCore
             string text = string.Format("Enemies: {0}\nAllies: {1}", enemies, scientists);
             objective = stringRenderer.RenderString(fontFace, text, Color4.LimeGreen, Color4.Black, false);
         }
+
+        public static bool UpdateUI = false;
     }
 }

@@ -79,11 +79,13 @@ namespace IronCore.Entities
             {
                 firePrimary();
                 bulletCounter = 0f;
+                InterfaceManager.UpdateUI = true;
             }
             else if (gpadState.Buttons.LeftShoulder == ButtonState.Pressed && bulletCounter > 0.08f)
             {
                 fireSecondary();
                 bulletCounter = 0f;
+                InterfaceManager.UpdateUI = true;
             }
         }
         public override void Draw(ShapeRenderer renderer)
@@ -92,7 +94,7 @@ namespace IronCore.Entities
             renderer.SetTransform(
                 Matrix4.CreateRotationZ(PhysicsBody.Rotation) *
                 Matrix4.CreateTranslation(position.X, position.Y, 0f));
-            renderer.DrawShape(shape.VertexData, Color4.GreenYellow);
+            renderer.DrawShape(shape.VertexData, ColorUtils.Blend(Color4.Red, Color4.Green, health / 100f));
             renderer.ClearTransform();
         }
 
@@ -144,20 +146,18 @@ namespace IronCore.Entities
 
             if (fixtureB.Body.UserData.Equals("Level"))
             {
-                /*float velLength = rocket.LinearVelocity.Length;
+                float velLength = physicsBody.LinearVelocity.Length;
                 if (velLength > 1f) //Deal damage
                 {
                     float damage = 1f * velLength;
-                    playerHealth -= damage;
+                    health -= damage;
 
-                    if (playerHealth <= 0f)
-                        playerHealth = 0f;
-
-                    Window.Title = playerHealth.ToString();
-                }*/
+                    if (health <= 0f)
+                        health = 0f;
+                    InterfaceManager.UpdateUI = true;
+                }
             }
-
-            //updateUI();
+            
             return true;
         }
 

@@ -56,6 +56,7 @@ namespace IronCore.Entities
                 {
                     map.ScientistCount--;
                     PurgeSelf();
+                    InterfaceManager.UpdateUI = true;
                 }
             }
 

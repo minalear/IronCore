@@ -60,7 +60,12 @@ namespace IronCore
 
             //Simulate world
             world.Step(0.01f);
-            updateUI();
+
+            if (InterfaceManager.UpdateUI)
+            {
+                updateUI();
+                InterfaceManager.UpdateUI = false;
+            }
         }
         public override void Draw(GameTime gameTime)
         {
@@ -80,6 +85,7 @@ namespace IronCore
 
         private void updateUI()
         {
+            //TODO: Performance improvement here.
             interfaceManager.SetStats(map.Player.Health, map.Player.AmmoCount);
             interfaceManager.SetObjectives(map.EnemyCount, map.ScientistCount);
         }
