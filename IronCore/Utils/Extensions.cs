@@ -41,7 +41,7 @@ namespace IronCore.Utils
         }
 
         /// <summary>
-        /// Normalizes a Vector, but ensures the length is not zero first.
+        /// Returns a normalized vector, but doesn't if the vector length is zero.
         /// </summary>
         public static Vector2 SafeNormalize(this Vector2 v)
         {

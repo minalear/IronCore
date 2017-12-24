@@ -22,13 +22,13 @@ namespace IronCore.Controllers
 
         public override void Update(GameTime gameTime)
         {
-            Vector2 playerPosition = Entity.Map.Player.PhysicsBody.Position;
-            float distToPlayer = playerPosition.DistanceSquared(Entity.PhysicsBody.Position);
-            float playerSpeed = Entity.Map.Player.PhysicsBody.LinearVelocity.LengthSquared;
+            Vector2 playerPosition = Parent.Map.Player.PhysicsBody.Position;
+            float distToPlayer = playerPosition.DistanceSquared(Parent.PhysicsBody.Position);
+            float playerSpeed = Parent.Map.Player.PhysicsBody.LinearVelocity.LengthSquared;
 
             if (distToPlayer > 0.1f || playerSpeed != 0f) //Patrol
             {
-                Entity.Color = Color4.Aquamarine;
+                Parent.Color = Color4.Aquamarine;
 
                 //Bounce between 0 and 1
                 positionTracker += SCIENTIST_SPEED * positionMod;
@@ -45,26 +45,26 @@ namespace IronCore.Controllers
             }
             else if (playerSpeed == 0f) //Approach player ship
             {
-                Entity.Color = Color4.DarkGoldenrod;
+                Parent.Color = Color4.DarkGoldenrod;
 
-                positionMod = (playerPosition.X < Entity.PhysicsBody.Position.X) ? -1f : 1f;
+                positionMod = (playerPosition.X < Parent.PhysicsBody.Position.X) ? -1f : 1f;
                 positionTracker += SCIENTIST_SPEED * positionMod;
 
                 //Board the player ship
                 if (distToPlayer <= 0.002f)
                 {
-                    Entity.Map.ScientistCount--;
-                    Entity.PurgeSelf();
+                    Parent.Map.ScientistCount--;
+                    Parent.PurgeSelf();
                     InterfaceManager.UpdateUI = true;
                 }
             }
 
             //Interpolate entity position between the bounds of the spawn area
-            float y = Entity.DisplayPosition.Y;
-            Entity.DisplayPosition = Vector2.Lerp(
-                new Vector2(Entity.SpawnArea.Left, y),
-                new Vector2(Entity.SpawnArea.Right, y), positionTracker);
-            Entity.PhysicsBody.Position = ConvertUnits.ToSimUnits(Entity.DisplayPosition);
+            float y = Parent.DisplayPosition.Y;
+            Parent.DisplayPosition = Vector2.Lerp(
+                new Vector2(Parent.SpawnArea.Left, y),
+                new Vector2(Parent.SpawnArea.Right, y), positionTracker);
+            Parent.PhysicsBody.Position = ConvertUnits.ToSimUnits(Parent.DisplayPosition);
         }
     }
 }

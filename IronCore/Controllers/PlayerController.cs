@@ -3,6 +3,7 @@ using OpenTK;
 using OpenTK.Input;
 using IronCore.Utils;
 using IronCore.Entities;
+using FarseerPhysics;
 
 namespace IronCore.Controllers
 {
@@ -15,31 +16,29 @@ namespace IronCore.Controllers
             var gpadState = GamePad.GetState(0);
 
             //Movement
-            if (gpadState.ThumbSticks.Left.LengthSquared > 0.01f)
+            Vector2 moveDirection = InputManager.GetMoveDirection();
+            if (moveDirection.LengthSquared > 0f)
             {
-                Vector2 leftStick = gpadState.ThumbSticks.Left;
-                parent.PhysicsBody.Rotation = (float)Math.Atan2(leftStick.X, leftStick.Y);
+                parent.PhysicsBody.Rotation = (float)Math.Atan2(moveDirection.Y, moveDirection.X) + MathHelper.PiOver2;
 
-                //Only apply horizontal thrust
-                leftStick.Y = -leftStick.Y;
-
-                float mod = gpadState.Triggers.Right + 1f;
-                Vector2 force = leftStick * mod / 5f;
-                parent.PhysicsBody.ApplyForce(leftStick * mod / 5f);
+                float mod = InputManager.BoostMod();
+                parent.PhysicsBody.ApplyForce(moveDirection * mod / 5f);
             }
-            if (gpadState.ThumbSticks.Right.LengthSquared > 0.01f)
+            
+            //Looking
+            Vector2 lookDirection = InputManager.GetLookDirection(new Vector2(400f, 225f));
+            if (lookDirection.LengthSquared > 0f)
             {
-                Vector2 rightStick = gpadState.ThumbSticks.Right;
-                parent.PhysicsBody.Rotation = (float)Math.Atan2(rightStick.X, rightStick.Y);
+                parent.PhysicsBody.Rotation = (float)Math.Atan2(lookDirection.Y, lookDirection.X) - MathHelper.PiOver2;
             }
 
             //Guns
-            if (gpadState.Buttons.RightShoulder == ButtonState.Pressed)
+            if (InputManager.FirePrimary())
             {
                 parent.FirePrimary();
                 InterfaceManager.UpdateUI = true;
             }
-            else if (gpadState.Buttons.LeftShoulder == ButtonState.Pressed)
+            else if (InputManager.FireSecondary())
             {
                 parent.FireSecondary();
                 InterfaceManager.UpdateUI = true;

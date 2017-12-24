@@ -14,6 +14,6 @@ namespace IronCore.Controllers
         }
 
         public abstract void Update(GameTime gameTime);
-        public T Entity { get { return parent; } set { parent = value; } }
+        public T Parent { get { return parent; } set { parent = value; } }
     }
 }

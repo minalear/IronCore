@@ -24,6 +24,8 @@ namespace IronCore
         {
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
+            Window.MouseMove += (sender, e) => InputManager.UpdateMousePosition(e.X, e.Y);
         }
 
         public override void Initialize()
@@ -35,7 +37,9 @@ namespace IronCore
         {
             content = new ContentManager("Content/");
             renderer = new ShapeRenderer(content, Window.Width, Window.Height);
+
             interfaceManager = new InterfaceManager(content);
+            InputManager.Initialize();
 
             renderer.SetCamera(Matrix4.CreateTranslation(Window.Width / 2f, Window.Height / 2f, 0f));
             
@@ -47,7 +51,7 @@ namespace IronCore
 
         public override void Update(GameTime gameTime)
         {
-            GamePadState gpadState = GamePad.GetState(0);
+            InputManager.UpdateInputStates();
 
             //Update camera
             Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position);
