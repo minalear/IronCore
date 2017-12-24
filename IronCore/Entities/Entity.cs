@@ -60,5 +60,6 @@ namespace IronCore.Entities
         
         public Body PhysicsBody { get { return physicsBody; } }
         public bool DoPurge { get; private set; }
+        public Map Map { get { return map; } }
     }
 }

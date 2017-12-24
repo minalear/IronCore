@@ -1,8 +1,8 @@
 ﻿using System;
 using OpenTK;
 using OpenTK.Graphics;
-using FarseerPhysics;
 using IronCore.Utils;
+using IronCore.Controllers;
 
 namespace IronCore.Entities
 {
@@ -12,57 +12,19 @@ namespace IronCore.Entities
         public RectangleF SpawnArea;
         public Color4 Color = Color4.Aquamarine;
 
-        private float positionTracker;
-        private float positionMod = 1f;
+        private ScientistController controller;
 
         public Scientist(Map map, Vector2 displayPosition, RectangleF spawnArea) : base(map)
         {
             DisplayPosition = displayPosition;
             SpawnArea = spawnArea;
 
-            //Position between the left and right boundary of the spawn area
-            positionTracker = (displayPosition.X - spawnArea.X) / spawnArea.Width;
+            controller = new ScientistController(this);
         }
 
         public override void Update(GameTime gameTime)
         {
-            float distToPlayer = map.Player.PhysicsBody.Position.DistanceSquared(PhysicsBody.Position);
-            float playerVel = map.Player.PhysicsBody.LinearVelocity.LengthSquared;
-
-            if (distToPlayer > 0.1f || playerVel != 0f) //Patrol
-            {
-                Color = Color4.Aquamarine;
-
-                positionTracker += 0.003f * positionMod;
-                if (positionTracker >= 1f)
-                {
-                    positionTracker = 1f;
-                    positionMod = -1f;
-                }
-                else if (positionTracker <= 0f)
-                {
-                    positionMod = 0f;
-                    positionMod = 1f;
-                }
-            }
-            else if (playerVel == 0f)
-            {
-                Color = Color4.DarkGoldenrod;
-
-                positionMod = (map.Player.PhysicsBody.Position.X < PhysicsBody.Position.X) ? -1f : 1f;
-                positionTracker += 0.003f * positionMod;
-
-                if (distToPlayer <= 0.002f)
-                {
-                    map.ScientistCount--;
-                    PurgeSelf();
-                    InterfaceManager.UpdateUI = true;
-                }
-            }
-
-            float y = DisplayPosition.Y;
-            DisplayPosition = Vector2.Lerp(new Vector2(SpawnArea.Left, y), new Vector2(SpawnArea.Right, y), positionTracker);
-            PhysicsBody.Position = ConvertUnits.ToSimUnits(DisplayPosition);
+            controller.Update(gameTime);
         }
         public override void Draw(ShapeRenderer renderer)
         {
