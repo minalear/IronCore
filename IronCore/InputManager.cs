@@ -78,6 +78,8 @@ namespace IronCore
             return (center - currentMousePos).SafeNormalize();
         }
 
+        //TODO: Implement input events for buttons
+
         public static float LeftTrigger()
         {
             return gpadThisState.Triggers.Left;

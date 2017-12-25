@@ -69,8 +69,12 @@
     <Compile Include="Entities\Player.cs" />
     <Compile Include="Entities\Scientist.cs" />
     <Compile Include="Entities\Sensor.cs" />
+    <Compile Include="GUI\Controls\Control.cs" />
+    <Compile Include="GUI\Controls\SelectMenu.cs" />
+    <Compile Include="GUI\Screens\MainMenu.cs" />
+    <Compile Include="GUI\Screens\Screen.cs" />
     <Compile Include="InputManager.cs" />
-    <Compile Include="InterfaceManager.cs" />
+    <Compile Include="GUI\InterfaceManager.cs" />
     <Compile Include="MainGame.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="Program.cs" />

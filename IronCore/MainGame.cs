@@ -1,6 +1,5 @@
 ﻿using System;
 using OpenTK;
-using OpenTK.Input;
 using OpenTK.Graphics.OpenGL4;
 using IronCore.Utils;
 using FarseerPhysics;
@@ -45,8 +44,6 @@ namespace IronCore
             
             map = content.LoadMap(world, "Maps/physics_map.json");
             map.Player = new Entities.Player(map);
-
-            updateUI();
         }
 
         public override void Update(GameTime gameTime)
@@ -64,12 +61,6 @@ namespace IronCore
 
             //Simulate world
             world.Step(0.01f);
-
-            if (InterfaceManager.UpdateUI)
-            {
-                updateUI();
-                InterfaceManager.UpdateUI = false;
-            }
         }
         public override void Draw(GameTime gameTime)
         {
@@ -82,16 +73,9 @@ namespace IronCore
             
             renderer.End();
 
-            interfaceManager.Draw();
+            interfaceManager.Draw(gameTime);
 
             Window.SwapBuffers();
-        }
-
-        private void updateUI()
-        {
-            //TODO: Performance improvement here.
-            interfaceManager.SetStats(map.Player.Health, map.Player.AmmoCount);
-            interfaceManager.SetObjectives(map.EnemyCount, map.ScientistCount);
         }
     }
 }
