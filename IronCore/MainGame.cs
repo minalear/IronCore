@@ -49,6 +49,7 @@ namespace IronCore
         public override void Update(GameTime gameTime)
         {
             InputManager.UpdateInputStates();
+            interfaceManager.Update(gameTime);
 
             //Update camera
             Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position);

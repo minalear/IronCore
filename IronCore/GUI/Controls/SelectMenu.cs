@@ -12,12 +12,16 @@ namespace IronCore.GUI.Controls
 
         public SelectMenu(params string[] options)
         {
-            this.options = options;
+            SetOptions(options);
         }
 
         public override void Update(GameTime gameTime)
         {
-            
+            if (InputManager.IsButtonReleased(OpenTK.Input.Buttons.A))
+            {
+                SetOptions("WOH", "WHAT", "THE", "FUCK");
+                InterfaceManager.UpdateUI = true;
+            }
         }
         public override void Draw(GameTime gameTime)
         {
@@ -29,9 +33,15 @@ namespace IronCore.GUI.Controls
             if (renderedText != null)
                 renderedText.Dispose();
 
+            //Create a single string of all the options
+            string formattedString = string.Empty;
+            for (int i = 0; i < options.Length; i++)
+                formattedString += options[i] + "\n";
+
+            //Render the string to a texture and update the control size
             renderedText = InterfaceManager.StringRenderer.RenderString(
-                InterfaceManager.DefaultFont, "TEST MESSAGE", 
-                Color4.Black, Color4.White, false);
+                InterfaceManager.DefaultFont, formattedString, 
+                Color4.Black, Color4.White, true);
             area.Size = new Vector2(renderedText.Width, renderedText.Height);
         }
         public override void Unload()
@@ -41,6 +51,11 @@ namespace IronCore.GUI.Controls
                 renderedText.Dispose();
                 renderedText = null;
             }
+        }
+
+        public void SetOptions(params string[] options)
+        {
+            this.options = options;
         }
 
         public event Action<string> OptionSelected;

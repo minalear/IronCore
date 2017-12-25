@@ -10,7 +10,7 @@ namespace IronCore.GUI.Screens
         public MainMenu(InterfaceManager manager)
             : base(manager)
         {
-            SelectMenu menu = new SelectMenu("Option #1", "Option #2");
+            SelectMenu menu = new SelectMenu("New Game", "Load Game", "Options", "Exit");
             menu.Position = new Vector2();
 
             AddControl(menu);

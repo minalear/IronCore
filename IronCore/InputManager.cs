@@ -9,7 +9,9 @@ namespace IronCore
     {
         //TODO: Create a powerful input manager that can hotswap between mouse/keyboard input based on last used inputs
 
+        //TODO: Figure out a way to utilize only GamePadState or JoystickState
         private static GamePadState gpadLastState, gpadThisState;
+        private static JoystickState joyLastState, joyThisState;
         private static KeyboardState keyLastState, keyThisState;
         private static MouseState mouseLastState, mouseThisState;
         private static Vector2 currentMousePos;
@@ -21,21 +23,36 @@ namespace IronCore
             gpadLastState = gpadThisState = GamePad.GetState(0);
             keyLastState = keyThisState = Keyboard.GetState();
             mouseLastState = mouseThisState = Mouse.GetState();
+            joyLastState = joyThisState = Joystick.GetState(0);
         }
         public static void UpdateInputStates()
         {
             gpadLastState = gpadThisState;
             keyLastState = keyThisState;
             mouseLastState = mouseThisState;
+            joyLastState = joyThisState;
 
             gpadThisState = GamePad.GetState(0);
             keyThisState = Keyboard.GetState();
             mouseThisState = Mouse.GetState();
+            joyThisState = Joystick.GetState(0);
         }
         public static void UpdateMousePosition(int x, int y)
         {
             currentMousePos.X = x;
             currentMousePos.Y = y;
+        }
+
+        public static bool IsButtonPressed(Buttons button)
+        {
+            //HACK: Casting Buttons to int only works for A
+            int buttonID = (int)button;
+            return (joyThisState.IsButtonDown(buttonID) && joyLastState.IsButtonUp(buttonID));
+        }
+        public static bool IsButtonReleased(Buttons button)
+        {
+            int buttonID = (int)button;
+            return (joyThisState.IsButtonUp(buttonID) && joyLastState.IsButtonDown(buttonID));
         }
 
         public static Vector2 GetMoveDirection()
