@@ -12,6 +12,11 @@ namespace IronCore.GUI.Screens
         {
             SelectMenu menu = new SelectMenu("New Game", "Load Game", "Options", "Exit");
             menu.Position = new Vector2();
+            menu.OptionSelected += (option) =>
+            {
+                menu.Dispose();
+                controls.RemoveAt(0);
+            };
 
             AddControl(menu);
         }

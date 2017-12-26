@@ -30,7 +30,7 @@ namespace IronCore.Utils
         }
         public void Resize(int width, int height)
         {
-            shader.SetMatrix4("proj", false, Matrix4.CreateOrthographicOffCenter(0f, width, height, 0f, -1f, 1f));
+            shader.SetMatrix4("proj", false, Matrix4.CreateOrthographicOffCenter(-width / 2f, width / 2f, height / 2f, -height / 2f, -1f, 1f));
         }
 
         public void Begin()
@@ -44,6 +44,10 @@ namespace IronCore.Utils
             shader.Clear();
         }
 
+        public void SetProjection(Matrix4 matrix)
+        {
+            shader.SetMatrix4("proj", false, matrix);
+        }
         public void SetTransform(Matrix4 matrix)
         {
             shader.SetMatrix4("model", false, matrix);

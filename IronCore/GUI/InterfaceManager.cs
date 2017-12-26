@@ -13,6 +13,7 @@ namespace IronCore
         private Face fontFace;
 
         private TextureRenderer textureRenderer;
+        private ShapeRenderer shapeRenderer;
         private StringRenderer stringRenderer;
 
         private MainMenu mainMenu;
@@ -24,7 +25,12 @@ namespace IronCore
             fontFace.SetCharSize(0, 18f, 0, 0);
 
             textureRenderer = new TextureRenderer(content, 800, 450);
+            shapeRenderer = new ShapeRenderer(content, 800, 450);
             stringRenderer = new StringRenderer();
+
+            shapeRenderer.Begin();
+            shapeRenderer.SetProjection(Matrix4.CreateOrthographicOffCenter(0f, 800f, 450f, 0f, -1f, 1f));
+            shapeRenderer.End();
 
             mainMenu = new MainMenu(this);
             mainMenu.Load();
@@ -46,6 +52,7 @@ namespace IronCore
         }
 
         public TextureRenderer TextureRenderer { get { return textureRenderer; } }
+        public ShapeRenderer ShapeRenderer { get { return shapeRenderer; } }
         public StringRenderer StringRenderer { get { return stringRenderer; } }
         public Face DefaultFont { get { return fontFace; } }
 

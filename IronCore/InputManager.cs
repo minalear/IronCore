@@ -69,6 +69,7 @@ namespace IronCore
         }
 
         //TODO: Consider changing function names to be more representative of the state they are testing
+        //TODO: These throw errors when passing DpadButtons.  Consider creating our own enum
         public static bool IsButtonPressed(Buttons button)
         {
             int buttonID = gamepadButtonIDs[button];
@@ -86,6 +87,39 @@ namespace IronCore
         public static bool IsButtonDown(Buttons button)
         {
             return joyThisState.IsButtonDown(gamepadButtonIDs[button]);
+        }
+
+        public static bool IsDpadButtonPressed(Buttons buttons)
+        {
+            var thisHatState = joyThisState.GetHat(JoystickHat.Hat0);
+            var lastHatState = joyLastState.GetHat(JoystickHat.Hat0);
+
+            if (buttons == Buttons.DPadUp)
+                return thisHatState.IsUp && !lastHatState.IsUp;
+            if (buttons == Buttons.DPadDown)
+                return thisHatState.IsDown && !lastHatState.IsDown;
+            if (buttons == Buttons.DPadLeft)
+                return thisHatState.IsLeft && !lastHatState.IsLeft;
+            if (buttons == Buttons.DPadRight)
+                return thisHatState.IsRight && !lastHatState.IsRight;
+
+            return false;
+        }
+        public static bool IsDpadButtonReleased(Buttons buttons)
+        {
+            var thisHatState = joyThisState.GetHat(JoystickHat.Hat0);
+            var lastHatState = joyLastState.GetHat(JoystickHat.Hat0);
+
+            if (buttons == Buttons.DPadUp)
+                return !thisHatState.IsUp && lastHatState.IsUp;
+            if (buttons == Buttons.DPadDown)
+                return !thisHatState.IsDown && lastHatState.IsDown;
+            if (buttons == Buttons.DPadLeft)
+                return !thisHatState.IsLeft && lastHatState.IsLeft;
+            if (buttons == Buttons.DPadRight)
+                return !thisHatState.IsRight && lastHatState.IsRight;
+
+            return false;
         }
 
         public static Vector2 LeftStick()

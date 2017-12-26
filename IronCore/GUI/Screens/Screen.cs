@@ -9,7 +9,7 @@ namespace IronCore.GUI.Screens
     public class Screen : IDisposable
     {
         private InterfaceManager interfaceManager;
-        private List<Control> controls;
+        protected List<Control> controls;
 
         public Screen(InterfaceManager interfaceManager)
         {

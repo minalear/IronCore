@@ -8,7 +8,8 @@ namespace IronCore.GUI.Controls
     public class SelectMenu : Control
     {
         private string[] options;
-        private Texture2D renderedText;
+        private Texture2D[] textures;
+        private int selectedIndex = 0;
 
         public SelectMenu(params string[] options)
         {
@@ -17,40 +18,75 @@ namespace IronCore.GUI.Controls
 
         public override void Update(GameTime gameTime)
         {
+            //TODO: Replace these with event registers
             if (InputManager.IsButtonReleased(OpenTK.Input.Buttons.A))
             {
-                SetOptions("WOH", "WHAT", "THE", "FUCK");
+                OptionSelected?.Invoke(options[selectedIndex]);
+                selectedIndex = 0;
                 InterfaceManager.UpdateUI = true;
+            }
+            if (InputManager.IsDpadButtonReleased(OpenTK.Input.Buttons.DPadDown))
+            {
+                selectedIndex++;
+                if (selectedIndex == options.Length)
+                    selectedIndex = 0;
+                Load();
+            }
+            else if (InputManager.IsDpadButtonReleased(OpenTK.Input.Buttons.DPadUp))
+            {
+                selectedIndex--;
+                if (selectedIndex == -1)
+                    selectedIndex = options.Length - 1;
+                Load();
             }
         }
         public override void Draw(GameTime gameTime)
         {
-            InterfaceManager.TextureRenderer.Draw(renderedText, Position);
+            //Draw emtpy rectangle
+            InterfaceManager.ShapeRenderer.Begin();
+            InterfaceManager.ShapeRenderer.FillRect(area, Color4.White);
+            InterfaceManager.ShapeRenderer.End();
+
+            float y = Position.Y;
+            for (int i = 0; i < textures.Length; i++)
+            {
+                InterfaceManager.TextureRenderer.Draw(textures[i], new Vector2(Position.X, y));
+                y += textures[i].Height;
+            }
         }
         public override void Load()
         {
             //Dispose of texture 
-            if (renderedText != null)
-                renderedText.Dispose();
+            Unload(); //Shortcut disposing all textures
+            textures = new Texture2D[options.Length];
+            area.Size = Vector2.Zero; //Reset size
 
-            //Create a single string of all the options
-            string formattedString = string.Empty;
+            //Render each option to its own texture
             for (int i = 0; i < options.Length; i++)
-                formattedString += options[i] + "\n";
+            {
+                Color4 foreColor = (i == selectedIndex) ? Color4.Red : Color4.Black;
 
-            //Render the string to a texture and update the control size
-            renderedText = InterfaceManager.StringRenderer.RenderString(
-                InterfaceManager.DefaultFont, formattedString, 
-                Color4.Black, Color4.White, true);
-            area.Size = new Vector2(renderedText.Width, renderedText.Height);
+                textures[i] = InterfaceManager.StringRenderer.RenderString(
+                    InterfaceManager.DefaultFont, options[i],
+                    foreColor, Color4.White, false);
+
+                //Modify control size with texture sizes
+                area.Height += textures[i].Height;
+                area.Width = (textures[i].Width > area.Width) ? textures[i].Width : area.Width;
+            }
         }
         public override void Unload()
         {
-            if (renderedText != null)
+            //Cleanup textures
+            if (textures == null) return;
+            for (int i = 0; i < textures.Length; i++)
             {
-                renderedText.Dispose();
-                renderedText = null;
+                if (textures[i] == null) continue;
+
+                textures[i].Dispose();
+                textures[i] = null;
             }
+            textures = null;
         }
 
         public void SetOptions(params string[] options)
