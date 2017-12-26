@@ -18,10 +18,10 @@ namespace IronCore.Utils
             window.UpdateFrame += (sender, e) => updateFrame(e);
             window.Resize += (sender, e) => Resize(Window.Width, Window.Height);
 
-            Console.WriteLine("Vendor:         {0}", GL.GetString(StringName.Vendor));
-            Console.WriteLine("Renderer:       {0}", GL.GetString(StringName.Renderer));
-            Console.WriteLine("OpenGL Version: {0}", GL.GetString(StringName.Version));
-            Console.WriteLine("GLSL Version:   {0}", GL.GetString(StringName.ShadingLanguageVersion));
+            Console.WriteLine($"Vendor:         {GL.GetString(StringName.Vendor)}");
+            Console.WriteLine($"Renderer:       {GL.GetString(StringName.Renderer)}");
+            Console.WriteLine($"OpenGL Version: {GL.GetString(StringName.Version)}");
+            Console.WriteLine($"GLSL Version:   {GL.GetString(StringName.ShadingLanguageVersion)}");
 
             gameTime = new GameTime();
             RNG.Init();

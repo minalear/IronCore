@@ -54,10 +54,10 @@ namespace IronCore
             //Update camera
             Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position);
             camera.SetPosition(-rocketPosition);
-
-            Window.Title = string.Format("{0} - +{1}",
-                ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position),
-                ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.LinearVelocity));
+            
+            Window.Title =
+                $"{ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position)} - " +
+                $"+{ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.LinearVelocity)}";
             map.Update(gameTime);
 
             //Simulate world
