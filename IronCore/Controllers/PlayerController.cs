@@ -13,8 +13,6 @@ namespace IronCore.Controllers
 
         public override void Update(GameTime gameTime)
         {
-            var gpadState = GamePad.GetState(0);
-
             //Movement
             Vector2 moveDirection = InputManager.GetMoveDirection();
             if (moveDirection.LengthSquared > 0f)
@@ -29,7 +27,7 @@ namespace IronCore.Controllers
             Vector2 lookDirection = InputManager.GetLookDirection(new Vector2(400f, 225f));
             if (lookDirection.LengthSquared > 0f)
             {
-                parent.PhysicsBody.Rotation = (float)Math.Atan2(lookDirection.Y, lookDirection.X) - MathHelper.PiOver2;
+                //parent.PhysicsBody.Rotation = (float)Math.Atan2(lookDirection.Y, lookDirection.X) + MathHelper.PiOver2;
             }
 
             //Guns
