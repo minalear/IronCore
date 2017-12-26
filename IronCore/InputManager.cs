@@ -20,20 +20,6 @@ namespace IronCore
 
         private static bool disableMouseKeyInput = true;
 
-        public static void Test(GameWindow window)
-        {
-            var builder = new StringBuilder();
-            int numButtons = Joystick.GetCapabilities(0).ButtonCount;
-            int numAxis = Joystick.GetCapabilities(0).AxisCount;
-
-            for (int i = 0; i < numAxis; i++)
-            {
-                builder.AppendFormat("{0} ", joyThisState.GetAxis((JoystickAxis)i));
-            }
-
-            window.Title = builder.ToString();
-        }
-
         public static void Initialize()
         {
             keyLastState = keyThisState = Keyboard.GetState();
@@ -74,12 +60,15 @@ namespace IronCore
             mouseThisState = Mouse.GetState();
             joyThisState = Joystick.GetState(0);
         }
+
+        //TODO: Replace methods like this with event triggers from Window
         public static void UpdateMousePosition(int x, int y)
         {
             currentMousePos.X = x;
             currentMousePos.Y = y;
         }
 
+        //TODO: Consider changing function names to be more representative of the state they are testing
         public static bool IsButtonPressed(Buttons button)
         {
             int buttonID = gamepadButtonIDs[button];
@@ -89,6 +78,14 @@ namespace IronCore
         {
             int buttonID = gamepadButtonIDs[button];
             return (joyThisState.IsButtonUp(buttonID) && joyLastState.IsButtonDown(buttonID));
+        }
+        public static bool IsButtonUp(Buttons button)
+        {
+            return joyThisState.IsButtonUp(gamepadButtonIDs[button]);
+        }
+        public static bool IsButtonDown(Buttons button)
+        {
+            return joyThisState.IsButtonDown(gamepadButtonIDs[button]);
         }
 
         public static Vector2 LeftStick()
@@ -168,13 +165,13 @@ namespace IronCore
 
         public static bool FirePrimary()
         {
-            if (IsButtonPressed(Buttons.RightShoulder))
+            if (IsButtonDown(Buttons.RightShoulder))
                 return true;
             return (mouseThisState.LeftButton == ButtonState.Pressed && !disableMouseKeyInput);
         }
         public static bool FireSecondary()
         {
-            if (IsButtonPressed(Buttons.LeftShoulder))
+            if (IsButtonDown(Buttons.LeftShoulder))
                 return true;
             return (mouseThisState.RightButton == ButtonState.Pressed && !disableMouseKeyInput);
         }

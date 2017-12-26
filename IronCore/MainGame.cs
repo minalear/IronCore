@@ -49,16 +49,15 @@ namespace IronCore
         public override void Update(GameTime gameTime)
         {
             InputManager.UpdateInputStates();
-            InputManager.Test(Window);
             interfaceManager.Update(gameTime);
 
             //Update camera
             Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position);
             camera.SetPosition(-rocketPosition);
 
-            /*Window.Title = string.Format("{0} - +{1}",
+            Window.Title = string.Format("{0} - +{1}",
                 ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position),
-                ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.LinearVelocity));*/
+                ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.LinearVelocity));
             map.Update(gameTime);
 
             //Simulate world
