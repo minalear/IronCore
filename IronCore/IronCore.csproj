@@ -74,6 +74,7 @@
     <Compile Include="Entities\Sensor.cs" />
     <Compile Include="GUI\Controls\Control.cs" />
     <Compile Include="GUI\Controls\SelectMenu.cs" />
+    <Compile Include="GUI\Screens\GameOverlay.cs" />
     <Compile Include="GUI\Screens\MainMenu.cs" />
     <Compile Include="GUI\Screens\Screen.cs" />
     <Compile Include="InputManager.cs" />

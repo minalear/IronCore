@@ -48,7 +48,7 @@ namespace IronCore.Entities
                 {
                     PurgeSelf();
                     map.EnemyCount--;
-                    InterfaceManager.UpdateUI = true;
+                    InterfaceManager.RefreshUI = true;
                 }
             }
         }

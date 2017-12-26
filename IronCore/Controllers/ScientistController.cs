@@ -55,7 +55,7 @@ namespace IronCore.Controllers
                 {
                     Parent.Map.ScientistCount--;
                     Parent.PurgeSelf();
-                    InterfaceManager.UpdateUI = true;
+                    InterfaceManager.RefreshUI = true;
                 }
             }
 

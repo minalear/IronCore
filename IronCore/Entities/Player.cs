@@ -125,7 +125,7 @@ namespace IronCore.Entities
 
                     if (health <= 0f)
                         health = 0f;
-                    InterfaceManager.UpdateUI = true;
+                    InterfaceManager.RefreshUI = true;
                 }
             }
             

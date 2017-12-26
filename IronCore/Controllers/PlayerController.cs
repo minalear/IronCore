@@ -34,12 +34,12 @@ namespace IronCore.Controllers
             if (InputManager.FirePrimary())
             {
                 parent.FirePrimary();
-                InterfaceManager.UpdateUI = true;
+                InterfaceManager.RefreshUI = true;
             }
             else if (InputManager.FireSecondary())
             {
                 parent.FireSecondary();
-                InterfaceManager.UpdateUI = true;
+                InterfaceManager.RefreshUI = true;
             }
         }
     }

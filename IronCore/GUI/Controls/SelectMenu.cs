@@ -23,7 +23,7 @@ namespace IronCore.GUI.Controls
             {
                 OptionSelected?.Invoke(options[selectedIndex]);
                 selectedIndex = 0;
-                InterfaceManager.UpdateUI = true;
+                InterfaceManager.RefreshUI = true;
             }
             if (InputManager.IsDpadButtonReleased(OpenTK.Input.Buttons.DPadDown))
             {

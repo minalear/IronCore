@@ -14,8 +14,8 @@ namespace IronCore.GUI.Screens
             menu.Position = new Vector2();
             menu.OptionSelected += (option) =>
             {
-                menu.Dispose();
-                controls.RemoveAt(0);
+                if (option.Equals("New Game", StringComparison.Ordinal))
+                    InterfaceManager.ChangeScreen("GameOverlay");
             };
 
             AddControl(menu);

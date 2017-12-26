@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using IronCore.Utils;
@@ -15,8 +16,9 @@ namespace IronCore
         private TextureRenderer textureRenderer;
         private ShapeRenderer shapeRenderer;
         private StringRenderer stringRenderer;
-
-        private MainMenu mainMenu;
+        
+        private Dictionary<string, Screen> screens;
+        private Screen activeScreen;
 
         public InterfaceManager(ContentManager content)
         {
@@ -32,23 +34,38 @@ namespace IronCore
             shapeRenderer.SetProjection(Matrix4.CreateOrthographicOffCenter(0f, 800f, 450f, 0f, -1f, 1f));
             shapeRenderer.End();
 
-            mainMenu = new MainMenu(this);
-            mainMenu.Load();
+            screens = new Dictionary<string, Screen>();
+            screens.Add("MainMenu", new MainMenu(this));
+            screens.Add("GameOverlay", new GameOverlay(this));
+
+            ChangeScreen("MainMenu");
         }
 
         public void Update(GameTime gameTime)
         {
-            mainMenu.Update(gameTime);
+            activeScreen.Update(gameTime);
 
-            if (UpdateUI)
+            if (RefreshUI)
             {
-                mainMenu.Load();
-                UpdateUI = false;
+                activeScreen.Load();
+                RefreshUI = false;
             }
         }
         public void Draw(GameTime gameTime)
         {
-            mainMenu.Draw(gameTime);
+            activeScreen.Draw(gameTime);
+        }
+
+        public void ChangeScreen(string name)
+        {
+            if (!screens.ContainsKey(name))
+                throw new InvalidOperationException("Invalid screen name.");
+
+            if (activeScreen != null)
+                activeScreen.Unload();
+
+            activeScreen = screens[name];
+            activeScreen.Load();
         }
 
         public TextureRenderer TextureRenderer { get { return textureRenderer; } }
@@ -56,6 +73,6 @@ namespace IronCore
         public StringRenderer StringRenderer { get { return stringRenderer; } }
         public Face DefaultFont { get { return fontFace; } }
 
-        public static bool UpdateUI = false;
+        public static bool RefreshUI = false;
     }
 }

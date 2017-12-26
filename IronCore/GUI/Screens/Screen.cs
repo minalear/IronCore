@@ -26,23 +26,22 @@ namespace IronCore.GUI.Screens
         public virtual void Update(GameTime gameTime)
         {
             for (int i = 0; i < controls.Count; i++)
-            {
                 controls[i].Update(gameTime);
-            }
         }
         public virtual void Draw(GameTime gameTime)
         {
             for (int i = 0; i < controls.Count; i++)
-            {
                 controls[i].Draw(gameTime);
-            }
         }
         public virtual void Load()
         {
             for (int i = 0; i < controls.Count; i++)
-            {
                 controls[i].Load();
-            }
+        }
+        public virtual void Unload()
+        {
+            for (int i = 0; i < controls.Count; i++)
+                controls[i].Unload();
         }
 
         public void Dispose()
