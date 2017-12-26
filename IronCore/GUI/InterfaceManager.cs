@@ -38,7 +38,7 @@ namespace IronCore
             screens.Add("MainMenu", new MainMenu(this));
             screens.Add("GameOverlay", new GameOverlay(this));
 
-            ChangeScreen("MainMenu");
+            ChangeScreen("GameOverlay");
         }
 
         public void Update(GameTime gameTime)

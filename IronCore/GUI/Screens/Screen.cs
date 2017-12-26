@@ -50,6 +50,8 @@ namespace IronCore.GUI.Screens
                 controls[i].Dispose();
         }
 
+        //TODO: Implement LoadContent
+
         public InterfaceManager InterfaceManager { get { return interfaceManager; } }
     }
 }

@@ -73,6 +73,7 @@
     <Compile Include="Entities\Scientist.cs" />
     <Compile Include="Entities\Sensor.cs" />
     <Compile Include="GUI\Controls\Control.cs" />
+    <Compile Include="GUI\Controls\Display.cs" />
     <Compile Include="GUI\Controls\SelectMenu.cs" />
     <Compile Include="GUI\Screens\GameOverlay.cs" />
     <Compile Include="GUI\Screens\MainMenu.cs" />
