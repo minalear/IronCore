@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
@@ -6,6 +7,8 @@ using IronCore.Utils;
 
 namespace IronCore
 {
+    using ButtonSelector = Func<GamePadState, ButtonState>;
+
     public static class InputManager
     {
         //TODO: Create a powerful input manager that can hotswap between mouse/keyboard input based on last used inputs
@@ -13,54 +16,66 @@ namespace IronCore
         //TODO: Figure out a way to utilize only GamePadState or JoystickState
         private static KeyboardState keyLastState, keyThisState;
         private static MouseState mouseLastState, mouseThisState;
-        private static JoystickState joyLastState, joyThisState;
+        private static GamePadState padLastState, padThisState;
         private static Vector2 currentMousePos;
 
-        private static Dictionary<Buttons, int> gamepadButtonIDs;
+        //Used to access GamePad's button state cleanly.
+        private static Dictionary<Buttons, ButtonSelector> buttonSelectors;
 
         private static bool disableMouseKeyInput = true;
+        
+        public static void Test(GameWindow window)
+        {
+            GamePadState gpadState = GamePad.GetState(0);
+            GamePadButtons buttons = gpadState.Buttons;
+
+            var dict = new Dictionary<Buttons, ButtonSelector>()
+            {
+                { Buttons.A, b => b.Buttons.A },
+            };
+
+            var result = dict[Buttons.A];
+            if (result.Invoke(gpadState) == ButtonState.Pressed)
+                window.Title = "HA";
+        }
 
         public static void Initialize()
         {
             keyLastState = keyThisState = Keyboard.GetState();
             mouseLastState = mouseThisState = Mouse.GetState();
-            joyLastState = joyThisState = Joystick.GetState(0);
+            padLastState = padThisState = GamePad.GetState(0);
 
+            buttonSelectors = new Dictionary<Buttons, ButtonSelector>()
+            {
+                { Buttons.A, state => state.Buttons.A }, //A
+                { Buttons.B, state => state.Buttons.B }, //B
+                { Buttons.X, state => state.Buttons.X }, //X
+                { Buttons.Y, state => state.Buttons.Y }, //Y
 
+                { Buttons.LeftShoulder, state => state.Buttons.LeftShoulder }, //Left Bumper
+                { Buttons.RightShoulder, state => state.Buttons.RightShoulder }, //Right Bumper
 
-            //IDs based on experimenting with DS4 
-            //TODO: Check Xbox 360 controller to ensure similar bindings
-            gamepadButtonIDs = new Dictionary<Buttons, int>();
-            gamepadButtonIDs.Add(Buttons.A, 1); //DS4 Cross (X)
-            gamepadButtonIDs.Add(Buttons.B, 2); //DS4 Circle
-            gamepadButtonIDs.Add(Buttons.X, 0); //DS4 Square
-            gamepadButtonIDs.Add(Buttons.Y, 3); //DS4 Triangle
-            gamepadButtonIDs.Add(Buttons.LeftShoulder, 4); //LB
-            gamepadButtonIDs.Add(Buttons.RightShoulder, 5); //RB
-            gamepadButtonIDs.Add(Buttons.LeftTrigger, 6);
-            gamepadButtonIDs.Add(Buttons.RightTrigger, 7);
-            gamepadButtonIDs.Add(Buttons.LeftStick, 10);
-            gamepadButtonIDs.Add(Buttons.RightStick, 11);
-            gamepadButtonIDs.Add(Buttons.Back, 8); //Select - DS4 Share
-            gamepadButtonIDs.Add(Buttons.Start, 9); //DS4 - Options
-            gamepadButtonIDs.Add(Buttons.BigButton, 12); //Guide
-            //TODO: Implement Touchpad (Both sides ID = 13)
+                //{ Buttons.A, state => state.Buttons.A }, //Left Trigger
+                //{ Buttons.A, state => state.Buttons.A }, //Right Trigger
 
-            //Joystick Axis IDs
-            //Left  (XY) = 01
-            //Right (XY) = 23
-            //L Trg      =  4
-            //R Trg      =  5
+                { Buttons.LeftStick, state => state.Buttons.LeftStick }, //Left Stick
+                { Buttons.RightStick, state => state.Buttons.RightStick }, //Right Stick
+
+                { Buttons.Back, state => state.Buttons.Back }, //Back/Select
+                { Buttons.Start, state => state.Buttons.Start }, //Start
+
+                { Buttons.BigButton, state => state.Buttons.BigButton } //Home Button
+            };
         }
         public static void UpdateInputStates()
         {
             keyLastState = keyThisState;
             mouseLastState = mouseThisState;
-            joyLastState = joyThisState;
+            padLastState = padThisState;
             
             keyThisState = Keyboard.GetState();
             mouseThisState = Mouse.GetState();
-            joyThisState = Joystick.GetState(0);
+            padThisState = GamePad.GetState(0);
         }
 
         //TODO: Replace methods like this with event triggers from Window
@@ -74,79 +89,71 @@ namespace IronCore
         //TODO: These throw errors when passing DpadButtons.  Consider creating our own enum
         public static bool IsButtonPressed(Buttons button)
         {
-            int buttonID = gamepadButtonIDs[button];
-            return (joyThisState.IsButtonDown(buttonID) && joyLastState.IsButtonUp(buttonID));
+            return (buttonSelectors[button].Invoke(padThisState) == ButtonState.Pressed) &&
+                   (buttonSelectors[button].Invoke(padLastState) == ButtonState.Released);
         }
         public static bool IsButtonReleased(Buttons button)
         {
-            int buttonID = gamepadButtonIDs[button];
-            return (joyThisState.IsButtonUp(buttonID) && joyLastState.IsButtonDown(buttonID));
+            return (buttonSelectors[button].Invoke(padThisState) == ButtonState.Pressed) &&
+                   (buttonSelectors[button].Invoke(padLastState) == ButtonState.Released);
         }
         public static bool IsButtonUp(Buttons button)
         {
-            return joyThisState.IsButtonUp(gamepadButtonIDs[button]);
+            return (buttonSelectors[button].Invoke(padThisState) == ButtonState.Released);
         }
         public static bool IsButtonDown(Buttons button)
         {
-            return joyThisState.IsButtonDown(gamepadButtonIDs[button]);
+            return (buttonSelectors[button].Invoke(padThisState) == ButtonState.Pressed);
         }
 
         public static bool IsDpadButtonPressed(Buttons buttons)
         {
-            var thisHatState = joyThisState.GetHat(JoystickHat.Hat0);
-            var lastHatState = joyLastState.GetHat(JoystickHat.Hat0);
-
             if (buttons == Buttons.DPadUp)
-                return thisHatState.IsUp && !lastHatState.IsUp;
+                return padThisState.DPad.IsUp && !padLastState.DPad.IsUp;
             if (buttons == Buttons.DPadDown)
-                return thisHatState.IsDown && !lastHatState.IsDown;
+                return padThisState.DPad.IsDown && !padLastState.DPad.IsDown;
             if (buttons == Buttons.DPadLeft)
-                return thisHatState.IsLeft && !lastHatState.IsLeft;
+                return padThisState.DPad.IsLeft && !padLastState.DPad.IsLeft;
             if (buttons == Buttons.DPadRight)
-                return thisHatState.IsRight && !lastHatState.IsRight;
+                return padThisState.DPad.IsRight && !padLastState.DPad.IsRight;
 
             return false;
         }
         public static bool IsDpadButtonReleased(Buttons buttons)
         {
-            var thisHatState = joyThisState.GetHat(JoystickHat.Hat0);
-            var lastHatState = joyLastState.GetHat(JoystickHat.Hat0);
-
             if (buttons == Buttons.DPadUp)
-                return !thisHatState.IsUp && lastHatState.IsUp;
+                return !padThisState.DPad.IsUp && padLastState.DPad.IsUp;
             if (buttons == Buttons.DPadDown)
-                return !thisHatState.IsDown && lastHatState.IsDown;
+                return !padThisState.DPad.IsDown && padLastState.DPad.IsDown;
             if (buttons == Buttons.DPadLeft)
-                return !thisHatState.IsLeft && lastHatState.IsLeft;
+                return !padThisState.DPad.IsLeft && padLastState.DPad.IsLeft;
             if (buttons == Buttons.DPadRight)
-                return !thisHatState.IsRight && lastHatState.IsRight;
+                return !padThisState.DPad.IsRight && padLastState.DPad.IsRight;
 
             return false;
         }
 
         public static Vector2 LeftStick()
         {
-            float x = joyThisState.GetAxis(LEFT_STICK_X_ID);
-            float y = joyThisState.GetAxis(LEFT_STICK_Y_ID);
+            Vector2 leftStick = padThisState.ThumbSticks.Left;
+            leftStick.Y = -leftStick.Y; //Invert Y
 
-            return new Vector2(x, y);
+            return leftStick;
         }
         public static Vector2 RightStick()
         {
-            float x = joyThisState.GetAxis(RIGHT_STICK_X_ID);
-            float y = joyThisState.GetAxis(RIGHT_STICK_Y_ID);
+            Vector2 rightSTick = padThisState.ThumbSticks.Right;
+            rightSTick.Y = -rightSTick.Y; //Invert Y
 
-            return new Vector2(x, y);
+            return rightSTick;
         }
         public static float LeftTrigger()
         {
-            //JoystickAxis for triggers go from -1 to 1 (expecting 0 to 1)
-            return (joyThisState.GetAxis(LEFT_TRIGGER_ID) + 1f) / 2f;
+            return padThisState.Triggers.Left;
         }
         public static float RightTrigger()
         {
-            //JoystickAxis for triggers go from -1 to 1 (expecting 0 to 1)
-            return (joyThisState.GetAxis(RIGHT_TRIGGER_ID) + 1f) / 2f;
+            return padThisState.Triggers.Right;
         }
 
         public static Vector2 GetMoveDirection()
@@ -159,9 +166,6 @@ namespace IronCore
 
             if (leftStick.LengthSquared > 0.01f)
             {
-                //leftStick.Y = -leftStick.Y; //Invert Y axis
-                //GamepadState thumbsticks Y axis is inverted compared to Joystick axis
-
                 total += leftStick;
             }
 
@@ -211,13 +215,5 @@ namespace IronCore
                 return true;
             return (mouseThisState.RightButton == ButtonState.Pressed && !disableMouseKeyInput);
         }
-
-        //TODO: These IDs don't seem to be consistent between my laptop and PC >.<
-        private const JoystickAxis  LEFT_STICK_X_ID = (JoystickAxis)0;
-        private const JoystickAxis  LEFT_STICK_Y_ID = (JoystickAxis)1;
-        private const JoystickAxis RIGHT_STICK_X_ID = (JoystickAxis)2;
-        private const JoystickAxis RIGHT_STICK_Y_ID = (JoystickAxis)3;
-        private const JoystickAxis  LEFT_TRIGGER_ID = (JoystickAxis)4;
-        private const JoystickAxis RIGHT_TRIGGER_ID = (JoystickAxis)5;
     }
 }
