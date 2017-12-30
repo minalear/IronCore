@@ -87,6 +87,7 @@
     <Compile Include="Utils\CircleF.cs" />
     <Compile Include="Utils\ColorUtils.cs" />
     <Compile Include="Utils\ContentManager.cs" />
+    <Compile Include="Utils\Content\MapLoader.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\Game.cs" />
     <Compile Include="Utils\GameTime.cs" />
