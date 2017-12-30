@@ -24,21 +24,6 @@ namespace IronCore
 
         private static bool disableMouseKeyInput = true;
         
-        public static void Test(GameWindow window)
-        {
-            GamePadState gpadState = GamePad.GetState(0);
-            GamePadButtons buttons = gpadState.Buttons;
-
-            var dict = new Dictionary<Buttons, ButtonSelector>()
-            {
-                { Buttons.A, b => b.Buttons.A },
-            };
-
-            var result = dict[Buttons.A];
-            if (result.Invoke(gpadState) == ButtonState.Pressed)
-                window.Title = "HA";
-        }
-
         public static void Initialize()
         {
             keyLastState = keyThisState = Keyboard.GetState();
