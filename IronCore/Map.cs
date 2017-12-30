@@ -14,6 +14,7 @@ namespace IronCore
     {
         public World World;
         public Player Player;
+        public Vector2 PlayerStart;
         
         public List<StaticGeometry> StaticGeometry;
         public List<StaticGeometry> WaterBodies;
@@ -22,6 +23,11 @@ namespace IronCore
 
         private List<Entity> entities;
 
+        public Map()
+        {
+            World = new World(new Vector2(0f, 9.8f));
+            entities = new List<Entity>();
+        }
         public Map(World world)
         {
             World = world;
@@ -67,6 +73,9 @@ namespace IronCore
                 renderer.FillShape(StaticGeometry[i].VertexData, Color4.Black);
                 renderer.DrawShape(StaticGeometry[i].VertexData, Color4.LimeGreen);
             }
+
+            //Simulate world
+            World.Step(0.01f);
         }
         public void SpawnBullet(Entity owner, Vector2 position, Vector2 velocity, float size, float damage)
         {
@@ -80,6 +89,8 @@ namespace IronCore
 
             Bullet bullet = new Bullet(this, owner, damage);
             bullet.SetPhysicsBody(physicsBody);
+
+            entities.Add(bullet);
         }
         
         public List<Entity> Entities { get { return entities; } }
