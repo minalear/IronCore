@@ -19,7 +19,7 @@ namespace IronCore.Entities
         private int ammoCount = 200;
         private float bulletCounter = 0f;
 
-        public Player(Map map) : base(map)
+        public Player(Map map, Vector2 positionBottom) : base(map)
         {
             const float height = 8f / 2f;
             const float width = 5f / 2f;
@@ -31,7 +31,7 @@ namespace IronCore.Entities
 
             Body physicsBody = BodyFactory.CreatePolygon(map.World, vertices, 5f);
             physicsBody.BodyType = BodyType.Dynamic;
-            physicsBody.Position = ConvertUnits.ToSimUnits(new Vector2(830f, 298f));
+            physicsBody.Position = ConvertUnits.ToSimUnits(positionBottom - new Vector2(0f, height * 2f));
             physicsBody.AngularDamping = 300f;
             physicsBody.LinearDamping = 8f;
             physicsBody.OnCollision += Rocket_OnCollision;

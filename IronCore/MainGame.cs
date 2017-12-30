@@ -42,8 +42,8 @@ namespace IronCore
 
             renderer.SetCamera(Matrix4.CreateTranslation(Window.Width / 2f, Window.Height / 2f, 0f));
             
-            map = content.LoadMap(world, "Maps/physics_map.json");
-            map.Player = new Entities.Player(map);
+            map = content.LoadMap("Maps/physics_map.json");
+            map.Player = new Entities.Player(map, map.PlayerStart);
         }
 
         public override void Update(GameTime gameTime)
@@ -59,9 +59,6 @@ namespace IronCore
                 $"{ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position)} - " +
                 $"+{ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.LinearVelocity)}";
             map.Update(gameTime);
-
-            //Simulate world
-            world.Step(0.01f);
         }
         public override void Draw(GameTime gameTime)
         {

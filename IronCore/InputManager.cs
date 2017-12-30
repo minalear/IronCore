@@ -26,6 +26,8 @@ namespace IronCore
             mouseLastState = mouseThisState = Mouse.GetState();
             joyLastState = joyThisState = Joystick.GetState(0);
 
+
+
             //IDs based on experimenting with DS4 
             //TODO: Check Xbox 360 controller to ensure similar bindings
             gamepadButtonIDs = new Dictionary<Buttons, int>();
@@ -210,6 +212,7 @@ namespace IronCore
             return (mouseThisState.RightButton == ButtonState.Pressed && !disableMouseKeyInput);
         }
 
+        //TODO: These IDs don't seem to be consistent between my laptop and PC >.<
         private const JoystickAxis  LEFT_STICK_X_ID = (JoystickAxis)0;
         private const JoystickAxis  LEFT_STICK_Y_ID = (JoystickAxis)1;
         private const JoystickAxis RIGHT_STICK_X_ID = (JoystickAxis)2;
