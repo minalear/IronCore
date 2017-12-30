@@ -62,6 +62,7 @@ namespace IronCore
 
             //Simulate world
             world.Step(0.01f);
+            InputManager.Test(Window);
         }
         public override void Draw(GameTime gameTime)
         {
