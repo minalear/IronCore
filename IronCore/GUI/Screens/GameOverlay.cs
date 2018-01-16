@@ -24,10 +24,24 @@ namespace IronCore.GUI.Screens
 
         public override void Load()
         {
-            stats.SetText("LHS Xavier");
-            objective.SetText("Stats Here.");
+            stats.SetText(string.Format("LHS Xavier\n  HP: {0}\nAmmo: {1}", 
+                GameManager.ActiveMap.Player.Health, GameManager.ActiveMap.Player.AmmoCount));
+
+            objective.SetText(string.Format("Enemies: {0}\n Allies: {1}",
+                GameManager.ActiveMap.EnemyCount, GameManager.ActiveMap.ScientistCount));
 
             base.Load();
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            stats.SetText(string.Format("LHS Xavier\n  HP: {0}\nAmmo: {1}",
+                GameManager.ActiveMap.Player.Health, GameManager.ActiveMap.Player.AmmoCount));
+
+            objective.SetText(string.Format("Enemies: {0}\n Allies: {1}",
+                GameManager.ActiveMap.EnemyCount, GameManager.ActiveMap.ScientistCount));
+
+            base.Update(gameTime);
         }
     }
 }

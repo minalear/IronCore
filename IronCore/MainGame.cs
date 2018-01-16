@@ -32,11 +32,11 @@ namespace IronCore
         {
             content = new ContentManager("Content/");
             renderer = new ShapeRenderer(content, Window.Width, Window.Height);
-
-            interfaceManager = new InterfaceManager(content);
+            
             InputManager.Initialize();
             GameManager.Initialize(this);
             GameManager.LoadMap("level_01");
+            interfaceManager = new InterfaceManager(content);
 
             renderer.SetCamera(Matrix4.CreateTranslation(Window.Width / 2f, Window.Height / 2f, 0f));
         }
