@@ -14,10 +14,7 @@ namespace IronCore
 
         private InterfaceManager interfaceManager;
 
-        private World world;
         private Camera camera;
-        
-        private Map map;
 
         public MainGame() : base("IronCore - Minalear", 800, 450)
         {
@@ -29,7 +26,6 @@ namespace IronCore
 
         public override void Initialize()
         {
-            world = new World(new Vector2(0f, 9.8f));
             camera = new Camera(Vector2.Zero, 2f);
         }
         public override void LoadContent()
@@ -39,11 +35,10 @@ namespace IronCore
 
             interfaceManager = new InterfaceManager(content);
             InputManager.Initialize();
+            GameManager.Initialize(this);
+            GameManager.LoadMap("level_01");
 
             renderer.SetCamera(Matrix4.CreateTranslation(Window.Width / 2f, Window.Height / 2f, 0f));
-            
-            map = content.LoadMap("Maps/physics_map.json");
-            map.Player = new Entities.Player(map, map.PlayerStart);
         }
 
         public override void Update(GameTime gameTime)
@@ -52,13 +47,10 @@ namespace IronCore
             interfaceManager.Update(gameTime);
 
             //Update camera
-            Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position);
+            Vector2 rocketPosition = ConvertUnits.ToDisplayUnits(GameManager.ActiveMap.Player.PhysicsBody.Position);
             camera.SetPosition(-rocketPosition);
             
-            Window.Title =
-                $"{ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.Position)} - " +
-                $"+{ConvertUnits.ToDisplayUnits(map.Player.PhysicsBody.LinearVelocity)}";
-            map.Update(gameTime);
+            GameManager.Update(gameTime);
         }
         public override void Draw(GameTime gameTime)
         {
@@ -67,7 +59,7 @@ namespace IronCore
             renderer.Begin();
             renderer.SetCamera(camera.Transform);
 
-            map.Draw(renderer);
+            GameManager.Draw(gameTime, renderer);
             
             renderer.End();
 
@@ -75,5 +67,7 @@ namespace IronCore
 
             Window.SwapBuffers();
         }
+
+        public ContentManager Content { get { return content; } }
     }
 }
