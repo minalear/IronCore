@@ -11,8 +11,6 @@ namespace IronCore.Entities
     public class Enemy : Entity
     {
         public CircleF Area;
-        public float CurrentHealth;
-
         public Color4 Color = Color4.Cyan;
 
         private TurretController controller;
@@ -41,11 +39,10 @@ namespace IronCore.Entities
             {
                 Bullet bullet = ((Bullet)other);
                 if (bullet.Owner.GetType() == typeof(Player))
-                    CurrentHealth -= bullet.Damage;
+                    DealDamage(bullet.Damage);
 
-                if (CurrentHealth <= 0f)
+                if (currentHealth <= 0f)
                 {
-                    PurgeSelf();
                     map.EnemyCount--;
                     InterfaceManager.RefreshUI = true;
                 }

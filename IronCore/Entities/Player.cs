@@ -13,9 +13,11 @@ namespace IronCore.Entities
 {
     public class Player : Entity
     {
+        private const float MINIMUM_DAMAGE_SPEED = 2f;
+        private const float COLLISION_DAMAGE_MODIFIER = 0.75f;
+
         private PlayerController controller;
         private StaticGeometry shape;
-        private float health = 100f;
         private int ammoCount = 200;
         private float bulletCounter = 0f;
 
@@ -51,6 +53,9 @@ namespace IronCore.Entities
 
             SetPhysicsBody(physicsBody);
             controller = new PlayerController(this);
+
+            maxHealth = 100f;
+            currentHealth = maxHealth;
         }
 
         public override void Update(GameTime gameTime)
@@ -64,7 +69,7 @@ namespace IronCore.Entities
             renderer.SetTransform(
                 Matrix4.CreateRotationZ(PhysicsBody.Rotation) *
                 Matrix4.CreateTranslation(position.X, position.Y, 0f));
-            renderer.DrawShape(shape.VertexData, ColorUtils.Blend(Color4.Red, Color4.Green, health / 100f));
+            renderer.DrawShape(shape.VertexData, ColorUtils.Blend(Color4.Red, Color4.Green, currentHealth / 100f));
             renderer.ClearTransform();
         }
 
@@ -116,16 +121,13 @@ namespace IronCore.Entities
         {
             if (fixtureB.Body.UserData == null) return true;
 
-            if (fixtureB.Body.UserData.Equals("Level"))
+            if (fixtureB.Body.UserData.Equals("Static Geometry"))
             {
                 float velLength = physicsBody.LinearVelocity.Length;
-                if (velLength > 1f) //Deal damage
+                if (velLength > MINIMUM_DAMAGE_SPEED) //Deal damage
                 {
-                    float damage = 1f * velLength;
-                    health -= damage;
-
-                    if (health <= 0f)
-                        health = 0f;
+                    float damage = COLLISION_DAMAGE_MODIFIER * velLength;
+                    DealDamage(damage);
                     InterfaceManager.RefreshUI = true;
                 }
             }
@@ -133,7 +135,6 @@ namespace IronCore.Entities
             return true;
         }
 
-        public float Health { get { return health; } set { health = value; } }
         public int AmmoCount { get { return ammoCount; } set { ammoCount = value; } }
     }
 }

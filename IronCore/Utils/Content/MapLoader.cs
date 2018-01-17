@@ -111,6 +111,7 @@ namespace IronCore.Utils.Content
                     gate.Name = mapObject.Name;
                     gate.StartPosition = simPosition;
                     gate.SetPhysicsBody(physicsBody);
+                    gate.IsImmortal = true;
 
                     //Gate end positions based on how it slides
                     if (mapObject.Properties["Slide"].Equals("Left"))
@@ -136,6 +137,7 @@ namespace IronCore.Utils.Content
                     sensor.SetPhysicsBody(physicsBody);
                     sensor.TargetGateName = mapObject.Properties.ContainsKey("Gate") ? (string)mapObject.Properties["Gate"] : "None";
                     sensor.DisplayArea = area;
+                    sensor.IsImmortal = true;
                 }
             }
 
@@ -178,7 +180,7 @@ namespace IronCore.Utils.Content
                 enemy.PhysicsBody.Position = ConvertUnits.ToSimUnits(area.Position);
                 enemy.PhysicsBody.CollisionCategories = Category.Cat1;
                 enemy.Area = area;
-                enemy.CurrentHealth = 10f;
+                enemy.MaxHealth = 10f;
 
                 map.EnemyCount++;
             }
@@ -201,6 +203,7 @@ namespace IronCore.Utils.Content
                     scientist.PhysicsBody.Position = ConvertUnits.ToSimUnits(position);
                     //scientist.PhysicsBody.BodyType = BodyType.Dynamic;
                     scientist.PhysicsBody.IsSensor = true;
+                    scientist.IsImmortal = true; //TODO: Consider killable scientists
                 }
 
                 map.ScientistCount += scientistCount;
@@ -261,13 +264,13 @@ namespace IronCore.Utils.Content
             map.WaterBodies = waterBodies;
         }
 
-        const string ZONES_LAYER_NAME       = "Zones";
-        const string OBJECTIVES_LAYER_NAME  = "Objectives";
-        const string WATER_LAYER_NAME       = "Water";
-        const string ENEMIES_LAYER_NAME     = "Enemies";
-        const string GATES_LAYER_NAME       = "Gates";
-        const string COLLISION_LAYER_NAME   = "Collision";
-        const string OBJECT_LAYER_TYPE      = "objectgroup";
+        private const string ZONES_LAYER_NAME       = "Zones";
+        private const string OBJECTIVES_LAYER_NAME  = "Objectives";
+        private const string WATER_LAYER_NAME       = "Water";
+        private const string ENEMIES_LAYER_NAME     = "Enemies";
+        private const string GATES_LAYER_NAME       = "Gates";
+        private const string COLLISION_LAYER_NAME   = "Collision";
+        private const string OBJECT_LAYER_TYPE      = "objectgroup";
     }
 
     public class MapFile

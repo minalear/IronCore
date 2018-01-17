@@ -35,6 +35,7 @@ namespace IronCore.Entities
 
         protected override bool physicsBodyOnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
         {
+            //TODO: Consider dealing damage to entities from this function
             if (fixtureB.Body.UserData == null || !fixtureB.Body.UserData.Equals(Owner))
                 PurgeSelf();
             return base.physicsBodyOnCollision(fixtureA, fixtureB, contact);
