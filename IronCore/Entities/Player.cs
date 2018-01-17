@@ -35,6 +35,7 @@ namespace IronCore.Entities
             physicsBody.AngularDamping = 300f;
             physicsBody.LinearDamping = 8f;
             physicsBody.OnCollision += Rocket_OnCollision;
+            physicsBody.CollisionCategories = Category.Cat1;
 
             shape = new StaticGeometry(6);
             shape.PhysicsBody = physicsBody;

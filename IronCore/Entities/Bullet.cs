@@ -35,7 +35,8 @@ namespace IronCore.Entities
 
         protected override bool physicsBodyOnCollision(Fixture fixtureA, Fixture fixtureB, Contact contact)
         {
-            PurgeSelf();
+            if (fixtureB.Body.UserData == null || !fixtureB.Body.UserData.Equals(Owner))
+                PurgeSelf();
             return base.physicsBodyOnCollision(fixtureA, fixtureB, contact);
         }
     }

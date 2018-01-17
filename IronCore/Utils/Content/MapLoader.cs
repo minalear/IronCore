@@ -130,7 +130,7 @@ namespace IronCore.Utils.Content
                 else if (mapObject.Type.Equals("Sensor"))
                 {
                     physicsBody.IsSensor = true;
-                    physicsBody.CollisionCategories = Category.Cat1;
+                    physicsBody.CollisionCategories = Category.Cat3;
 
                     Sensor sensor = new Sensor(map);
                     sensor.SetPhysicsBody(physicsBody);
@@ -172,11 +172,11 @@ namespace IronCore.Utils.Content
                 ObjectInfo enemyObject = layer.Objects[i];
 
                 CircleF area = new CircleF(enemyObject.X, enemyObject.Y, 6f);
-
+                
                 Enemy enemy = new Enemy(map);
                 enemy.SetPhysicsBody(BodyFactory.CreateCircle(world, ConvertUnits.ToSimUnits(area.Radius), 88.5f));
                 enemy.PhysicsBody.Position = ConvertUnits.ToSimUnits(area.Position);
-                enemy.PhysicsBody.CollisionCategories = Category.Cat2;
+                enemy.PhysicsBody.CollisionCategories = Category.Cat1;
                 enemy.Area = area;
                 enemy.CurrentHealth = 10f;
 

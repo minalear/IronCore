@@ -84,8 +84,11 @@ namespace IronCore
             physicsBody.FixedRotation = true;
             physicsBody.BodyType = BodyType.Dynamic;
             physicsBody.IsBullet = true;
+            physicsBody.IsSensor = true;
             physicsBody.ApplyLinearImpulse(velocity);
-            physicsBody.CollidesWith = (Category.All ^ (Category.Cat1 | Category.Cat3));
+
+            //Bullets don't collisde with sensors and other bullets
+            physicsBody.CollidesWith = (Category.All ^ (Category.Cat3 | Category.Cat4));
 
             Bullet bullet = new Bullet(this, owner, damage);
             bullet.SetPhysicsBody(physicsBody);
